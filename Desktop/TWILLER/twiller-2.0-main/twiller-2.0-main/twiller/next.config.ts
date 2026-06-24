@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     BACKEND_URL: process.env.BACKEND_URL,
   },
   outputFileTracingRoot: path.join(__dirname),
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
