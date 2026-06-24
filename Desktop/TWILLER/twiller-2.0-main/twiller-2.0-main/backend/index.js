@@ -288,15 +288,18 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "https://twiller-clone-for-x-dc27.vercel.app",
+  "https://twiller-clone-for-x-dc27-git-main-targaryen1.vercel.app",
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl) or matching our domains
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
