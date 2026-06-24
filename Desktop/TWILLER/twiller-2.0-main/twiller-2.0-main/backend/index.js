@@ -31,6 +31,11 @@ import {
 } from "./config/runtime.js";
 dotenv.config();
 
+// --- Pre-emptive Environment Variable Fallbacks & Warnings ---
+if (!process.env.FRONTEND_URL) console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
+if (!process.env.TWILIO_ACCOUNT_SID) console.warn("⚠️  TWILIO_ACCOUNT_SID is missing. SMS/WhatsApp OTP will be disabled or mocked.");
+if (!process.env.EMAIL_USER) console.warn("⚠️  EMAIL_USER is missing. Nodemailer features will be disabled or mocked.");
+
 // ── Translation Helper (MyMemory Translation API & Offline Fallback) ─────────
 const LOCAL_TRANSLATIONS = {
   Spanish: {
@@ -280,7 +285,23 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/api/payments", paymentRoutes);
