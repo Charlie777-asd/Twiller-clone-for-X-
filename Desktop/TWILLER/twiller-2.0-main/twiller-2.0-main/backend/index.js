@@ -36,8 +36,8 @@ dotenv.config();
 // --- Pre-emptive Environment Variable Fallbacks & Warnings ---
 if (!process.env.FRONTEND_URL)   console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
 if (!process.env.TWILIO_ACCOUNT_SID) console.warn("⚠️  TWILIO_ACCOUNT_SID is missing. SMS/WhatsApp OTP will be disabled or mocked.");
-if (!(process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD)) console.warn("⚠️  EMAIL_PASSWORD or GMAIL_APP_PASSWORD is missing. Email delivery might fail.");
-if (!(process.env.EMAIL_USER || process.env.GMAIL_USER)) console.warn("⚠️  EMAIL_USER or GMAIL_USER is missing. Email delivery might fail.");
+if (!(process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.email_password || process.env.GMAIL_PASSWORD)) console.warn("⚠️  EMAIL_PASSWORD is missing. Email delivery might fail.");
+if (!(process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.EMAIL || process.env.email)) console.warn("⚠️  EMAIL_USER is missing. Email delivery might fail.");
 
 // ── Translation Helper (MyMemory Translation API & Offline Fallback) ─────────
 const LOCAL_TRANSLATIONS = {
@@ -612,15 +612,15 @@ const sendEmail = async ({ to, subject, html, text, otp }) => {
     port: 465,
     secure: true, // true for port 465
     auth: {
-      user: process.env.EMAIL_USER || process.env.GMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD,
+      user: process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.EMAIL || process.env.email,
+      pass: process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.email_password || process.env.GMAIL_PASSWORD,
     },
     tls: {
       rejectUnauthorized: false // Prevents local/host certificate handshake blockages
     }
   });
 
-  const fromEmail = process.env.EMAIL_USER || process.env.GMAIL_USER;
+  const fromEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.EMAIL || process.env.email;
   const htmlBody = html || (otp ? buildOtpHtml(otp) : undefined);
   const textBody = text || (otp ? `Your Twiller verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.` : undefined);
 
