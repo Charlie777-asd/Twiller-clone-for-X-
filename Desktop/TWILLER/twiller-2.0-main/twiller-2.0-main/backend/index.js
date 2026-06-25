@@ -1,4 +1,5 @@
 import express from "express";
+import nodemailer from "nodemailer";
 import dns from "dns";
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 dns.setDefaultResultOrder("ipv4first");
@@ -13,7 +14,6 @@ import fs from "fs";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { parseFile } from "music-metadata";
-import { google } from "googleapis";
 import Comment from "./models/comment.js";
 import Conversation from "./models/conversation.js";
 import Message from "./models/message.js";
@@ -34,12 +34,10 @@ import { startBotSimulator } from "./botSimulator.js";
 dotenv.config();
 
 // --- Pre-emptive Environment Variable Fallbacks & Warnings ---
-if (!process.env.FRONTEND_URL) console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
+if (!process.env.FRONTEND_URL)   console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
 if (!process.env.TWILIO_ACCOUNT_SID) console.warn("⚠️  TWILIO_ACCOUNT_SID is missing. SMS/WhatsApp OTP will be disabled or mocked.");
-if (!process.env.GMAIL_USER)          console.warn("⚠️  GMAIL_USER is missing. Email delivery will be in mock/console mode.");
-if (!process.env.GMAIL_CLIENT_ID)     console.warn("⚠️  GMAIL_CLIENT_ID is missing. Gmail REST API transport will not be available.");
-if (!process.env.GMAIL_CLIENT_SECRET) console.warn("⚠️  GMAIL_CLIENT_SECRET is missing. Gmail REST API transport will not be available.");
-if (!process.env.GMAIL_REFRESH_TOKEN) console.warn("⚠️  GMAIL_REFRESH_TOKEN is missing. Gmail REST API transport will not be available.");
+if (!(process.env.EMAIL_PASSWORD || process.env.email_password)) console.warn("⚠️  EMAIL_PASSWORD is missing. Email delivery will be in mock/console mode.");
+if (!(process.env.EMAIL || process.env.email || process.env.GMAIL_USER)) console.warn("⚠️  EMAIL is missing. Emails will show a fallback sender address.");
 
 // ── Translation Helper (MyMemory Translation API & Offline Fallback) ─────────
 const LOCAL_TRANSLATIONS = {
@@ -537,163 +535,121 @@ const whatsappOtpStore = new Map();
 
 const audioUploadTokens = new Map();
 
-// ── Gmail REST API Transport (HTTPS port 443 — bypasses Render SMTP firewall) ──
+// ── Nodemailer SMTP Transport (Gmail) ──
 //
-// Why NOT App Password + Nodemailer SMTP:
-//   Render Free Tier blocks outbound TCP on ports 25, 465, and 587 at the
-//   kernel level. An App Password is an SMTP credential — it is useless when
-//   the port it needs is firewalled. No Nodemailer pool or timeout setting
-//   can bypass a network-layer port block.
+// Configured to use a personal Gmail account and App Password.
 //
-// Why Gmail REST API works:
-//   POST https://gmail.googleapis.com/gmail/v1/users/me/messages/send
-//   runs over HTTPS (port 443), which Render never blocks. Auth is via
-//   OAuth2 with a long-lived refresh token — the googleapis library
-//   automatically refreshes the access token on every call.
-//
-// Required env vars (set on Render Dashboard → Environment):
-//   GMAIL_USER          – your.name@gmail.com
-//   GMAIL_CLIENT_ID     – from Google Cloud Console OAuth2 client
-//   GMAIL_CLIENT_SECRET – from Google Cloud Console OAuth2 client
-//   GMAIL_REFRESH_TOKEN – from https://developers.google.com/oauthplayground
+// Required env vars (Render Dashboard → Environment):
+//   EMAIL           – Your Gmail address (e.g. your.address@gmail.com)
+//   EMAIL_PASSWORD  – 16-character Google App Password (no spaces)
 
-let _gmailApi = null;
-
-if (
-  process.env.GMAIL_USER &&
-  process.env.GMAIL_CLIENT_ID &&
-  process.env.GMAIL_CLIENT_SECRET &&
-  process.env.GMAIL_REFRESH_TOKEN
-) {
-  try {
-    const _oauth2 = new google.auth.OAuth2(
-      process.env.GMAIL_CLIENT_ID,
-      process.env.GMAIL_CLIENT_SECRET,
-      // This redirect_uri MUST match what is registered in Google Cloud Console.
-      // If you used the OAuth Playground for the refresh token, keep this value.
-      "https://developers.google.com/oauthplayground"
-    );
-    _oauth2.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
-    _gmailApi = google.gmail({ version: "v1", auth: _oauth2 });
-    console.log(`✅ Gmail REST API transport ready — sending as ${process.env.GMAIL_USER}`);
-  } catch (initErr) {
-    console.error("❌ Gmail REST API transport init failed:", initErr.message);
-    _gmailApi = null;
-  }
-} else if (allowMockServices()) {
-  console.log("ℹ️  Gmail API credentials not set — OTP codes will be logged to console (mock mode).");
-} else {
-  console.warn(
-    "⚠️ Gmail API credentials are missing. Configure GMAIL_USER, GMAIL_CLIENT_ID, " +
-    "GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN on the Render dashboard to enable email delivery."
-  );
-}
+const buildOtpHtml = (otp) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Twiller Verification Code</title>
+</head>
+<body style="margin:0;padding:0;background:#000000;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#000000;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#000000;border:1px solid #2f3336;border-radius:16px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#000000 0%,#16181c 100%);padding:32px 40px 24px;border-bottom:1px solid #2f3336;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="#e7e9ea" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                  </td>
+                  <td style="text-align:right;">
+                    <span style="color:#71767b;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Verification Code</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px 40px 32px;">
+              <p style="margin:0 0 8px;font-size:24px;font-weight:800;color:#e7e9ea;">Your one-time code</p>
+              <p style="margin:0 0 32px;font-size:15px;color:#71767b;line-height:1.6;">Enter this code to verify your identity. It expires in <strong style="color:#e7e9ea;">10 minutes</strong>.</p>
+              <!-- OTP Box -->
+              <div style="background:#16181c;border:1px solid #2f3336;border-radius:12px;padding:28px;text-align:center;margin-bottom:32px;">
+                <span style="font-size:48px;font-weight:900;letter-spacing:16px;color:#ffffff;font-family:'Courier New',Courier,monospace;">${otp}</span>
+              </div>
+              <p style="margin:0 0 24px;font-size:14px;color:#71767b;line-height:1.7;">
+                If you did not request this code, you can safely ignore this email. Do not share this code with anyone.
+              </p>
+              <div style="border-top:1px solid #2f3336;padding-top:24px;">
+                <p style="margin:0;font-size:12px;color:#536471;">
+                  &copy; ${new Date().getFullYear()} Twiller &mdash; This is an automated message. Please do not reply.
+                </p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
 /**
- * _buildRawMime — RFC 2822 MIME multipart/alternative message encoder.
- * The Gmail REST API requires the full message as a base64url string.
+ * sendEmail — unified Nodemailer send wrapper.
  *
- * @param {{ from: string, to: string, subject: string, html?: string, text?: string }} p
- * @returns {string} base64url-encoded RFC 2822 message
+ * @param {{ to: string, subject: string, html?: string, text?: string, otp?: string }} opts
+ * @returns {Promise<{ messageId: string } | { mockId: string }>}
  */
-const _buildRawMime = ({ from, to, subject, html, text }) => {
-  const boundary = `twiller_${crypto.randomBytes(10).toString("hex")}`;
-  const plain    = text || "Please view this email in an HTML-capable client.";
-  const htmlBody = html || `<pre style="font-family:sans-serif">${plain}</pre>`;
+const sendEmail = async ({ to, subject, html, text, otp }) => {
+  // ── LIVE PATH ────────────────────────────────────────────────
+  const userPassword = process.env.EMAIL_PASSWORD || process.env.email_password || process.env.GMAIL_PASSWORD;
+  const userEmail = process.env.EMAIL || process.env.email || process.env.GMAIL_USER;
 
-  const mime = [
-    `From: ${from}`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    "MIME-Version: 1.0",
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: 7bit",
-    "",
-    plain,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "Content-Transfer-Encoding: 7bit",
-    "",
-    htmlBody,
-    "",
-    `--${boundary}--`,
-  ].join("\r\n");
+  if (userPassword && userEmail) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: userEmail,
+        pass: userPassword,
+      },
+    });
 
-  return Buffer.from(mime)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-};
+    const htmlBody = html || (otp ? buildOtpHtml(otp) : undefined);
+    const textBody = text || (otp ? `Your Twiller verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.` : undefined);
 
-/**
- * sendEmail — unified Gmail REST API send wrapper.
- *
- * Uses HTTPS port 443 — never touches SMTP ports 465 or 587.
- * All call sites share this one function; zero changes needed elsewhere.
- *
- * @param {{ to: string, subject: string, html?: string, text?: string }} opts
- * @returns {Promise<{ id: string, threadId: string } | { mockId: string }>}
- */
-const sendEmail = async ({ to, subject, html, text }) => {
-  // ── LIVE PATH: Gmail REST API ─────────────────────────────────────────
-  if (_gmailApi) {
-    const from = `"Twiller" <${process.env.GMAIL_USER}>`;
-    const raw  = _buildRawMime({ from, to, subject, html, text });
+    const mailOptions = {
+      from: `"Twiller Auth" <${userEmail}>`,
+      to,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    };
 
     try {
-      const res = await _gmailApi.users.messages.send({
-        userId: "me",            // "me" → authenticated Gmail account
-        requestBody: { raw },
-      });
-
-      const { id, threadId } = res.data;
-      console.log(
-        `✉️  Gmail REST API → delivered to ${to} [msgId: ${id}, thread: ${threadId}]`
-      );
-      return res.data;
-
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`✉️  Nodemailer → delivered to ${to} [messageId: ${info.messageId}]`);
+      return { messageId: info.messageId };
     } catch (err) {
-      // Unwrap Google API error details for actionable logging
-      const apiErr  = err?.response?.data?.error;
-      const apiMsg  = apiErr
-        ? `HTTP ${apiErr.code} ${apiErr.status}: ${apiErr.message}`
-        : err.message;
-
-      console.error(`❌ Gmail REST API send failed for ${to}: ${apiMsg}`);
-
-      if (apiErr?.code === 401 || apiErr?.status === "UNAUTHENTICATED") {
-        console.error(
-          "   → Token rejected. Verify GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and " +
-          "GMAIL_REFRESH_TOKEN. If the refresh token was revoked (e.g., password change), " +
-          "re-run the OAuth Playground flow to obtain a fresh token."
-        );
-      } else if (apiErr?.code === 403) {
-        console.error(
-          "   → Permission denied. Ensure the Gmail API is enabled in your Google Cloud " +
-          "project and the OAuth scope 'https://www.googleapis.com/auth/gmail.send' was granted."
-        );
-      } else if (apiErr?.code === 429) {
-        console.error("   → Gmail API rate limit exceeded. Implement exponential back-off.");
-      }
-
-      throw new Error(apiMsg);
+      console.error(`❌ Nodemailer sendEmail exception for ${to}:`, err.message);
+      throw err;
     }
   }
 
-  // ── MOCK / DEV FALLBACK ─────────────────────────────────────────────────
-  // Only reached when GMAIL_* credentials are missing (local dev without .env).
+  // ── MOCK / DEV FALLBACK ──────────────────────────────────────────
+  // Reached only when EMAIL_PASSWORD is not set (local dev / CI without .env).
   console.log(`\n╔════════════════════════════════════════╗`);
-  console.log(`  📧 EMAIL (MOCK — Gmail API credentials not set)`);
+  console.log(`  📧 EMAIL (MOCK — EMAIL_PASSWORD not set)`);
   console.log(`  To:      ${to}`);
   console.log(`  Subject: ${subject}`);
-  console.log(`  Body:    ${text || "(html only)"}`);
+  if (otp) console.log(`  OTP:     ${otp}`);
+  else      console.log(`  Body:    ${text || "(html only)"}`);
   console.log(`╚════════════════════════════════════════╝\n`);
-  return { mockId: "mock-gmail-id" };
+  return { mockId: "mock-nodemailer-id" };
 };
 
 app.set("sendEmail", sendEmail);

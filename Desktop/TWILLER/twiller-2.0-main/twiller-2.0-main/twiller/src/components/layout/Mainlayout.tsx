@@ -214,14 +214,15 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
   const showRightSidebar = !NO_RIGHT_SIDEBAR.includes(currentPage as string);
 
   return (
-    <div className="w-screen min-h-screen min-h-dvh bg-black text-white flex flex-col md:flex-row justify-center overflow-x-hidden relative pb-16 md:pb-0">
+    <div className="h-[100dvh] w-screen bg-black text-white flex flex-col md:flex-row justify-center overflow-hidden relative">
       {/* ── Left Sidebar ─────────────────────────────────────────── */}
       <div className="hidden md:block flex-shrink-0 w-[68px] xl:w-[275px]">
         <Sidebar currentPage={currentPage as Page} onNavigate={setCurrentPage} />
       </div>
 
-      {/* ── Mobile Fixed Top Header ─────────────────────────────── */}
-      <header className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden w-full">
+      {/* ── Mobile Top Header ────────────────────────────────── */}
+      {/* flex-shrink-0 locks it to its h-16 height; z-40 keeps it above page sticky sub-headers (z-10/z-20) */}
+      <header className="flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden w-full">
         <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
           <Avatar className="h-12 w-12">
             <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
@@ -238,10 +239,15 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         </button>
       </header>
 
-      {/* ── Main content ─────────────────────────────────────────── */}
+      {/* ── Main content ─────────────────────────────────── */}
+      {/*
+        pb-16 md:pb-0  →  on mobile, pad the bottom of the scroll area by
+        exactly the bottom-nav height (h-16 = 64px) so the last tweet / input
+        is never hidden behind the nav bar. On md+ there is no bottom nav.
+      */}
       <main
         ref={mainRef}
-        className={`flex-1 min-h-screen md:h-screen pt-16 md:pt-0 border-x border-[#2f3336] overflow-x-hidden overflow-y-visible md:overflow-y-auto ${
+        className={`flex-1 h-full border-x border-[#2f3336] overflow-x-hidden overflow-y-auto min-h-0 pb-16 md:pb-0 ${
           isFullWidth ? "max-w-[900px]" : "max-w-[600px]"
         }`}
       >
@@ -274,8 +280,14 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         </button>
       )}
 
-      {/* ── Mobile Sticky Bottom Navigation Bar ──────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-md border-t border-[#2f3336] z-40 h-16 flex items-center justify-around md:hidden pb-safe">
+      {/* ── Mobile Bottom Navigation Bar ───────────────────── */}
+      {/*
+        flex-shrink-0 → always stays at h-16; never compressed.
+        z-40          → above all scroll content and sticky page sub-headers.
+        safe-area-inset-bottom via pb-safe ensures iPhone home indicator
+        doesn’t cover the nav icons.
+      */}
+      <nav className="flex-shrink-0 bg-black/90 backdrop-blur-md border-t border-[#2f3336] z-40 h-16 flex items-center justify-around md:hidden pb-safe w-full">
         <button 
           onClick={() => { setCurrentPage("home"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           className={`flex flex-col items-center justify-center p-2 text-white transition-opacity ${currentPage === "home" ? "opacity-100" : "opacity-50"}`}
