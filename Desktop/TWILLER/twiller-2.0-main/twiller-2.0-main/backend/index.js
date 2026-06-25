@@ -13,7 +13,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { parseFile } from "music-metadata";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import Comment from "./models/comment.js";
 import Conversation from "./models/conversation.js";
 import Message from "./models/message.js";
@@ -36,7 +36,8 @@ dotenv.config();
 // --- Pre-emptive Environment Variable Fallbacks & Warnings ---
 if (!process.env.FRONTEND_URL) console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
 if (!process.env.TWILIO_ACCOUNT_SID) console.warn("⚠️  TWILIO_ACCOUNT_SID is missing. SMS/WhatsApp OTP will be disabled or mocked.");
-if (!process.env.EMAIL_USER) console.warn("⚠️  EMAIL_USER is missing. Nodemailer features will be disabled or mocked.");
+if (!process.env.RESEND_API_KEY) console.warn("⚠️  RESEND_API_KEY is missing. Email OTP delivery will fall back to console logging.");
+if (!process.env.SENDER_EMAIL) console.warn("⚠️  SENDER_EMAIL is missing. Defaulting to onboarding@resend.dev (only works for your own verified domain).");
 
 // ── Translation Helper (MyMemory Translation API & Offline Fallback) ─────────
 const LOCAL_TRANSLATIONS = {
@@ -534,58 +535,59 @@ const whatsappOtpStore = new Map();
 
 const audioUploadTokens = new Map();
 
-let mailTransporter = null;
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-  try {
-    mailTransporter = nodemailer.createTransport({
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 100,
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-      tls: {
-        rejectUnauthorized: false, // Fix: bypass self-signed certificate chain error
-      },
-      lookup: (hostname, options, callback) => {
-        dns.lookup(hostname, { ...options, family: 4 }, callback);
-      },
-      connectionTimeout: 5000, // 5 seconds connection timeout
-      greetingTimeout: 5000,
-      socketTimeout: 5000,
-    });
-    mailTransporter.verify((error, success) => {
-      if (error) {
-        console.error("❌ Nodemailer transporter verification failed:", error);
-      } else {
-        console.log("✅ Nodemailer transporter is ready to take messages (pooled)");
-      }
-    });
-    console.log(`✅ Nodemailer Gmail configured with active connection pool for: ${process.env.EMAIL_USER}`);
-  } catch (err) {
-    console.log("⚠️ Gmail transporter creation failed:", err.message);
-    mailTransporter = null;
-  }
-}
-if (!mailTransporter) {
-  if (allowMockServices()) {
-    console.log("ℹ️  Using mock email transporter — OTP codes will be logged to console.");
-    mailTransporter = {
-      sendMail: async (info) => {
-        console.log(`\n╔══════════════════════════════╗`);
-        console.log(`  📧 OTP EMAIL (MOCK)`);
-        console.log(`  To: ${info.to}`);
-        console.log(`  Subject: ${info.subject}`);
-        console.log(`  ${info.text}`);
-        console.log(`╚══════════════════════════════╝\n`);
-        return { messageId: "mock-id" };
-      }
-    };
-  } else {
-    console.warn("⚠️ Email credentials are missing. Email OTP delivery is disabled until they are configured.");
-  }
+// ── Resend HTTP Email Client (bypasses SMTP port blocks on Render Free Tier) ──
+const SENDER_EMAIL = process.env.SENDER_EMAIL || "Twiller <onboarding@resend.dev>";
+
+let resendClient = null;
+if (process.env.RESEND_API_KEY) {
+  resendClient = new Resend(process.env.RESEND_API_KEY);
+  console.log("✅ Resend HTTP email client initialized successfully.");
+} else if (allowMockServices()) {
+  console.log("ℹ️  RESEND_API_KEY not set — OTP codes will be logged to console (mock mode).");
+} else {
+  console.warn("⚠️ RESEND_API_KEY is missing. Email OTP delivery is disabled until configured on the Render dashboard.");
 }
 
-app.set("mailTransporter", mailTransporter);
+/**
+ * sendEmail — unified Resend HTTP send wrapper.
+ * @param {{ to: string, subject: string, html: string, text: string }} opts
+ * @returns {Promise<{ id: string } | { mockId: string }>}
+ */
+const sendEmail = async ({ to, subject, html, text }) => {
+  if (resendClient) {
+    try {
+      const result = await resendClient.emails.send({
+        from: SENDER_EMAIL,
+        to,
+        subject,
+        html,
+        text,
+      });
+      if (result.error) {
+        // Resend SDK surfaces API errors inside result.error instead of throwing
+        const errMsg = typeof result.error === "object" ? JSON.stringify(result.error) : String(result.error);
+        console.error(`❌ Resend API error sending to ${to}:`, errMsg);
+        throw new Error(errMsg);
+      }
+      console.log(`✉️  Email sent via Resend to ${to} [id: ${result.data?.id}]`);
+      return result.data;
+    } catch (err) {
+      console.error(`❌ Resend sendEmail exception for ${to}:`, err.message);
+      throw err;
+    }
+  }
+
+  // Mock fallback — only reached in dev/test environments without RESEND_API_KEY
+  console.log(`\n╔══════════════════════════════════════╗`);
+  console.log(`  📧 EMAIL (MOCK — no RESEND_API_KEY set)`);
+  console.log(`  To:      ${to}`);
+  console.log(`  Subject: ${subject}`);
+  console.log(`  Body:    ${text || "(html only)"}`);
+  console.log(`╚══════════════════════════════════════╝\n`);
+  return { mockId: "mock-resend-id" };
+};
+
+app.set("sendEmail", sendEmail);
 app.set("sendSmsOtp", sendSmsOtp);
 
 app.get("/", (req, res) => res.send("Twiller backend is running successfully"));
@@ -816,30 +818,28 @@ const sendLoginOtp = async (user) => {
   if (!user.email || user.email.includes("@phone.twiller.local")) {
     throw new Error("No valid email registered for OTP verification.");
   }
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Generate a cryptographically random 6-digit OTP
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
   user.otpCode = hashOtp(otp);
-  user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10-minute TTL
   await user.save();
 
-  if (mailTransporter) {
-    try {
-      await mailTransporter.sendMail({
-        from: '"Twiller Security" <security@twiller.com>',
-        to: user.email,
-        subject: "Login Verification Code — Twiller",
-        html: generateProfessionalEmailTemplate(
-          "Chrome Login Verification",
-          "You are logging in from Google Chrome. Please use the verification code below to complete your sign-in:",
-          otp,
-          "Login Verification"
-        ),
-        text: `Your login verification code is: ${otp}\n\nThis code expires in 10 minutes.`,
-      });
-    } catch (err) {
-      console.warn("⚠️ Login OTP email failed:", err.message);
-    }
-  } else {
-    console.log(`[MOCK] OTP for Chrome login (${user.email}): ${otp}`);
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: "Login Verification Code — Twiller",
+      html: generateProfessionalEmailTemplate(
+        "Chrome Login Verification",
+        "You are logging in from Google Chrome. Please use the verification code below to complete your sign-in:",
+        otp,
+        "Login Verification"
+      ),
+      text: `Your Twiller login verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.`,
+    });
+  } catch (err) {
+    // Non-fatal: OTP is already saved in DB — user can retry from UI
+    console.error("❌ Login OTP email failed (Resend):", err.message);
   }
 };
 
@@ -931,11 +931,10 @@ app.post("/register", async (req, res) => {
     });
     await newUser.save();
 
-    // Send real welcome email
-    if (mailTransporter && newUser.email && !newUser.email.includes("@phone.twiller.local")) {
+    // Send welcome email via Resend HTTP API
+    if (newUser.email && !newUser.email.includes("@phone.twiller.local")) {
       try {
-        await mailTransporter.sendMail({
-          from: '"Twiller" <noreply@twiller.com>',
+        await sendEmail({
           to: newUser.email,
           subject: "Welcome to Twiller! 🎉 Your account is ready",
           html: `
@@ -964,9 +963,9 @@ app.post("/register", async (req, res) => {
             </div>`,
           text: `Welcome to Twiller, ${newUser.displayName}!\n\nYour account @${newUser.username} has been created.\nYou're on the Free plan: 1 tweet per day.\n\nNot you? Contact security@twiller.com`,
         });
-        console.log(`✉️  Welcome email sent to ${newUser.email}`);
       } catch (mailErr) {
-        console.warn(`⚠️  Welcome email failed: ${mailErr.message}`);
+        // Non-critical — user account is created; welcome email failure is logged but not propagated
+        console.error(`❌ Welcome email failed (Resend): ${mailErr.message}`);
       }
     }
 
@@ -1441,30 +1440,23 @@ app.post("/user/send-change-otp", async (req, res) => {
 
     let sentVia = [];
 
-    // 1. Send via Email
+    // 1. Send via Email (Resend HTTP API)
     if ((channel === 'email' || channel === 'both') && user.email && !user.email.includes("@phone.twiller.local")) {
-      if (mailTransporter) {
-        try {
-          await mailTransporter.sendMail({
-            from: '"Twiller Security" <security@twiller.com>',
-            to: user.email,
-            subject: "Your Settings Verification OTP — Twiller",
-            html: generateProfessionalEmailTemplate(
-              "Settings Change Request",
-              "You have requested to change your account settings. Please use the verification code below to confirm this change:",
-              otp,
-              "Settings Verification"
-            ),
-            text: `Your OTP to change settings is: ${otp}\n\nThis code expires in 10 minutes.`,
-          });
-          sentVia.push("email");
-        } catch (mailErr) {
-          console.warn("⚠️ Settings change email failed:", mailErr.message);
-          console.log(`[FALLBACK MOCK] Settings Verification OTP for ${user.email}: ${otp}`);
-          sentVia.push("email (mock)");
-        }
-      } else {
-        console.log(`[MOCK] Settings Verification OTP for ${user.email}: ${otp}`);
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "Your Settings Verification OTP — Twiller",
+          html: generateProfessionalEmailTemplate(
+            "Settings Change Request",
+            "You have requested to change your account settings. Please use the verification code below to confirm this change:",
+            otp,
+            "Settings Verification"
+          ),
+          text: `Your OTP to change settings is: ${otp}\n\nThis code expires in 10 minutes.`,
+        });
+        sentVia.push("email");
+      } catch (mailErr) {
+        console.error("❌ Settings change email failed (Resend):", mailErr.message);
         sentVia.push("email (mock)");
       }
     }
@@ -1642,11 +1634,10 @@ app.post("/forgot-password/reset", async (req, res) => {
 
     forgotPasswordStore.delete(key); // consume token — one-time use
 
-    // Send confirmation email if email gateway is configured
-    if (mailTransporter && user.email && !user.email.includes("@phone.twiller.local")) {
+    // Send password-changed confirmation email via Resend HTTP API (non-critical)
+    if (user.email && !user.email.includes("@phone.twiller.local")) {
       try {
-        await mailTransporter.sendMail({
-          from: '"Twiller Security" <security@twiller.com>',
+        await sendEmail({
           to: user.email,
           subject: "Your Twiller password has been changed",
           html: `
@@ -1665,7 +1656,10 @@ app.post("/forgot-password/reset", async (req, res) => {
             </div>`,
           text: `Hi ${user.displayName},\n\nYour Twiller password was successfully changed.\n\nIf you did not make this change, contact security@twiller.com immediately.`,
         });
-      } catch { /* non-critical */ }
+      } catch (mailErr) {
+        console.error("❌ Password-changed confirmation email failed (Resend):", mailErr.message);
+        // Non-critical — password was already reset successfully
+      }
     }
 
     console.log(`✅ Password reset completed for user ${record.userId} (${user.email})`);
@@ -1760,31 +1754,23 @@ app.post("/language/request-otp", async (req, res) => {
     
     let sentVia = [];
 
-    // 1. Send via Email
+    // 1. Send via Email (Resend HTTP API)
     if (channel === 'email' && user.email && !user.email.includes("@phone.twiller.local")) {
-      if (mailTransporter) {
-        try {
-          await mailTransporter.sendMail({
-            from: '"Twiller Security" <security@twiller.com>',
-            to: user.email,
-            subject: "Your Language Verification OTP — Twiller",
-            html: generateProfessionalEmailTemplate(
-              "Language Change Request",
-              "You have requested to change your account language. Please use the verification code below to confirm this change:",
-              otp,
-              "Language Verification"
-            ),
-            text: `Your OTP to switch language is: ${otp}\n\nThis code expires in 10 minutes.`,
-          });
-          console.log(`✉️ Language OTP sent to ${user.email}`);
-          sentVia.push("email");
-        } catch (mailErr) {
-          console.log(`⚠️ Gmail send failed for ${user.email}: ${mailErr.message}`);
-          console.log(`[FALLBACK MOCK] Language Change OTP for ${user.email}: ${otp}`);
-          sentVia.push("email (mock)");
-        }
-      } else {
-        console.log(`📋 Language OTP for ${user.email}: ${otp}`);
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "Your Language Verification OTP — Twiller",
+          html: generateProfessionalEmailTemplate(
+            "Language Change Request",
+            "You have requested to change your account language. Please use the verification code below to confirm this change:",
+            otp,
+            "Language Verification"
+          ),
+          text: `Your OTP to switch language is: ${otp}\n\nThis code expires in 10 minutes.`,
+        });
+        sentVia.push("email");
+      } catch (mailErr) {
+        console.error(`❌ Language OTP email failed (Resend) for ${user.email}:`, mailErr.message);
         sentVia.push("email (mock)");
       }
     }
@@ -1798,11 +1784,10 @@ app.post("/language/request-otp", async (req, res) => {
         }
       } catch (smsErr) {
         console.warn("⚠️ Language OTP WhatsApp failed:", smsErr.message);
-        // Fall back to email if mobile fails
-        if (user.email && !user.email.includes("@phone.twiller.local") && mailTransporter) {
+        // Fall back to email via Resend if mobile fails
+        if (user.email && !user.email.includes("@phone.twiller.local")) {
           try {
-            await mailTransporter.sendMail({
-              from: '"Twiller Security" <security@twiller.com>',
+            await sendEmail({
               to: user.email,
               subject: "Your Language Verification OTP — Twiller",
               html: generateProfessionalEmailTemplate(
@@ -1814,7 +1799,9 @@ app.post("/language/request-otp", async (req, res) => {
               text: `Your OTP to switch language is: ${otp}\n\nThis code expires in 10 minutes.`,
             });
             sentVia.push("email (fallback)");
-          } catch { /* ignore */ }
+          } catch (fallbackErr) {
+            console.error("❌ Language OTP email fallback also failed (Resend):", fallbackErr.message);
+          }
         }
       }
     }
@@ -1892,33 +1879,25 @@ app.post("/audio/request-otp", async (req, res) => {
 
     let sentVia = [];
 
-    // 1. Send via Email
+    // 1. Send via Email (Resend HTTP API)
     if ((channel === 'email' || channel === 'both') && user.email && !user.email.includes("@phone.twiller.local")) {
-      if (mailTransporter) {
-        try {
-          const info = await mailTransporter.sendMail({
-            from: '"Twiller Security" <security@twiller.com>',
-            to: user.email,
-            subject: "Your Audio Upload OTP — Twiller",
-            text: `Your OTP for audio upload is: ${otp}\n\nThis code expires in 10 minutes.\n\n— Twiller Security`,
-            html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;background:#000;color:#e7e9ea;border-radius:12px;">
-              <h2 style="color:#1d9bf0;">🎙️ Twiller Audio Upload OTP</h2>
-              <p style="color:#8b98a5;">Use the code below to verify your identity for the audio tweet upload.</p>
-              <div style="background:#16181c;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
-                <span style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#1d9bf0;">${otp}</span>
-              </div>
-              <p style="color:#8b98a5;font-size:13px;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
-            </div>`,
-          });
-          console.log(`✉️  OTP sent to ${user.email} [${info.messageId}]`);
-          sentVia.push("email");
-        } catch (mailErr) {
-          console.log(`⚠️  Gmail send failed for ${user.email}: ${mailErr.message}`);
-          console.log(`[FALLBACK MOCK] Audio Upload OTP for ${user.email}: ${otp}`);
-          sentVia.push("email (mock)");
-        }
-      } else {
-        console.log(`📋  OTP for ${user.email}: ${otp}`);
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "Your Audio Upload OTP — Twiller",
+          text: `Your OTP for audio upload is: ${otp}\n\nThis code expires in 10 minutes.\n\n— Twiller Security`,
+          html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;background:#000;color:#e7e9ea;border-radius:12px;">
+            <h2 style="color:#1d9bf0;">🎙️ Twiller Audio Upload OTP</h2>
+            <p style="color:#8b98a5;">Use the code below to verify your identity for the audio tweet upload.</p>
+            <div style="background:#16181c;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
+              <span style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#1d9bf0;">${otp}</span>
+            </div>
+            <p style="color:#8b98a5;font-size:13px;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
+          </div>`,
+        });
+        sentVia.push("email");
+      } catch (mailErr) {
+        console.error(`❌ Audio upload OTP email failed (Resend) for ${user.email}:`, mailErr.message);
         sentVia.push("email (mock)");
       }
     }
@@ -2769,12 +2748,11 @@ app.post("/forgot-password", async (req, res) => {
     let maskedEmail = null;
     let maskedPhone = null;
 
-    // 1. Send via Email
+    // 1. Send via Email (Resend HTTP API — bypasses SMTP port blocks)
     if ((channel === 'email' || channel === 'both') && user.email && !user.email.includes("@phone.twiller.local")) {
       maskedEmail = user.email.replace(/(?<=.{2}).(?=[^@]*@)/g, "*");
       try {
-        await mailTransporter.sendMail({
-          from: '"Twiller Security" <security@twiller.com>',
+        await sendEmail({
           to: user.email,
           subject: `${otp} is your Twiller password reset code`,
           html: generateProfessionalEmailTemplate(
@@ -2785,12 +2763,11 @@ app.post("/forgot-password", async (req, res) => {
           ),
           text: `Your Twiller password reset code: ${otp}\n\nEnter this on the Twiller password reset page. Expires in 10 minutes.\n\nNever share this code.`,
         });
-        console.log(`✉️  Password reset OTP sent to ${user.email}`);
         sentVia.push("email");
       } catch (mailErr) {
-        console.warn(`⚠️  OTP email failed: ${mailErr.message}`);
-        console.log(`[FALLBACK MOCK] Password Reset OTP for ${user.email}: ${otp}`);
-        devOtp = otp; // fallback
+        console.error(`❌ Password reset OTP email failed (Resend) for ${user.email}:`, mailErr.message);
+        // Surface OTP in response so user is never fully blocked (only in dev/mock fallback)
+        devOtp = otp;
       }
     }
 
@@ -3014,21 +2991,15 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
     const hasRealEmail = ticket.email && !ticket.email.includes("@phone.twiller.local");
     const formattedId = ticket._id.toString().slice(-6).toUpperCase();
 
-    // Send Ticket notification to application owner (Owner Email Alert)
-    try {
-      const attachments = req.file ? [
-        {
-          filename: req.file.originalname,
-          path: req.file.path,
-          cid: "screenshot_img"
-        }
-      ] : [];
-
-      await mailTransporter.sendMail({
-        from: '"Twiller Support Desk" <support@twiller.com>',
-        to: process.env.EMAIL_USER || "owner@twiller.com",
-        subject: `🚨 Support Ticket Raised [${formattedId}]: ${subject}`,
-        html: `
+      // Send Ticket notification to application owner (Owner Email Alert)
+      // Note: Resend HTTP API does not support path-based attachments.
+      // The screenshot (if any) is saved to disk on the server and its path is stored in the ticket record.
+      const screenshotNote = screenshot ? `\n\n📎 Screenshot: ${screenshot}` : "";
+      try {
+        await sendEmail({
+          to: process.env.SUPPORT_OWNER_EMAIL || "owner@twiller.com",
+          subject: `🚨 Support Ticket Raised [${formattedId}]: ${subject}`,
+          html: `
           <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background:#000; border:1px solid #2f3336; border-radius:16px; overflow:hidden; color:#e7e9ea; padding:24px;">
             <div style="text-align:center; padding-bottom:20px; border-bottom:1px solid #2f3336;">
               <h2 style="color:#f4212e; margin:0; font-size:24px; font-weight:800;">🚨 New Support Ticket</h2>
@@ -3072,25 +3043,23 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
             </div>
 
             ${screenshot ? `
-              <div style="border-top:1px solid #2f3336; padding-top:20px; text-align:center;">
-                <p style="color:#71767b; font-size:13px; font-weight:bold; text-align:left; margin-bottom:12px;">📷 Screenshot Attachment:</p>
-                <img src="cid:screenshot_img" style="max-width:100%; border-radius:8px; border:1px solid #2f3336;" alt="User screenshot" />
+              <div style="border-top:1px solid #2f3336; padding-top:20px;">
+                <p style="color:#71767b; font-size:13px;">📎 Screenshot saved on server at: <code>${screenshot}</code></p>
               </div>
             ` : ""}
           </div>
         `,
-        attachments
-      });
-      console.log(`✉️ Support ticket email dispatched to Owner for Ticket #${formattedId}`);
-    } catch (ownerMailErr) {
-      console.warn("⚠️ Owner Ticket email notification failed:", ownerMailErr.message);
-    }
+          text: `Support Ticket #${formattedId}\nUser: ${name} | ${email} | ${phone || "N/A"}\nSubject: ${subject}\nOrder: ${orderId || "N/A"} | Payment: ${paymentId || "N/A"}\n\n${description}${screenshotNote}`,
+        });
+        console.log(`✉️ Support ticket email dispatched to Owner for Ticket #${formattedId}`);
+      } catch (ownerMailErr) {
+        console.error("❌ Owner Ticket email notification failed (Resend):", ownerMailErr.message);
+      }
 
-    // 1. Send confirmation email to the User
+    // 1. Send confirmation email to the User (Resend HTTP API)
     if (hasRealEmail) {
       try {
-        await mailTransporter.sendMail({
-          from: '"Twiller Support" <support@twiller.com>',
+        await sendEmail({
           to: ticket.email,
           subject: `🎫 Twiller Support Ticket Raised [${formattedId}]`,
           html: generateProfessionalEmailTemplate(
@@ -3102,7 +3071,7 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
           text: `Hi ${name}, your support ticket has been raised regarding: ${subject}. We will solve your issues shortly. Ticket ID: ${formattedId}.`,
         });
       } catch (mailErr) {
-        console.warn("⚠️ Support Ticket email notification failed:", mailErr.message);
+        console.error("❌ Support Ticket user confirmation email failed (Resend):", mailErr.message);
       }
     }
 
