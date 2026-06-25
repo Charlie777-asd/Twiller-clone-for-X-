@@ -334,10 +334,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    setUser(null);
-    localStorage.removeItem("twitter-user");
-    localStorage.removeItem("twitter-session-id");
-    try { await signOut(auth); } catch { /* phone users have no Firebase session */ }
+    try {
+      const sessionId = localStorage.getItem("twitter-session-id");
+      const storedUser = localStorage.getItem("twitter-user");
+      let userId = null;
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          userId = parsed?._id;
+        } catch { /* ignore */ }
+      }
+      await axiosInstance.post("/logout", { sessionId, userId });
+    } catch (err) {
+      console.warn("Backend logout request failed:", err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("twitter-user");
+      localStorage.removeItem("twitter-session-id");
+      try {
+        await signOut(auth);
+      } catch {
+        /* phone users have no Firebase session */
+      }
+      window.location.href = "/";
+    }
   };
 
   const updateProfile = async (profileData: {

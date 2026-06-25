@@ -314,8 +314,11 @@ export default function TweetCard({ tweet, onDeleted }: TweetCardProps) {
             </div>
 
             {/* Content */}
-            <div className="text-[#e7e9ea] text-[15px] leading-[1.5] mb-3 whitespace-pre-wrap break-words">
-              <TranslatedText text={tweetState.content} />
+            <div 
+              translate="no"
+              className="notranslate text-[#e7e9ea] text-[15px] leading-[1.5] mb-3 whitespace-pre-wrap break-words"
+            >
+              {tweetState.content}
             </div>
 
             {/* Image */}

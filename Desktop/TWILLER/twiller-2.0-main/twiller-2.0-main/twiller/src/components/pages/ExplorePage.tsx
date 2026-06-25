@@ -70,10 +70,11 @@ function VerifiedBadge() {
 
 export default function ExplorePage() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("For you");
   const [following, setFollowing] = useState<Record<string, boolean>>({});
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   
   // Search state
   const [searchResults, setSearchResults] = useState<Tweet[]>([]);
@@ -108,6 +109,23 @@ export default function ExplorePage() {
   useEffect(() => {
     fetchGlobalData();
   }, [fetchGlobalData]);
+
+  // Fetch suggestions dynamically from API
+  useEffect(() => {
+    if (!user?._id) return;
+    axiosInstance.get(`/users/suggestions?userId=${user._id}`)
+      .then(res => setSuggestions(res.data.slice(0, 3)))
+      .catch(() => {});
+  }, [user]);
+
+  // Sync following map from user object
+  useEffect(() => {
+    if (user?.following) {
+      const init: Record<string, boolean> = {};
+      (user.following as string[]).forEach(id => { init[id] = true; });
+      setFollowing(init);
+    }
+  }, [user]);
 
   // Listen for trending search clicks from RightSidebar
   useEffect(() => {
@@ -183,9 +201,19 @@ export default function ExplorePage() {
     }
   }, [activeSearchTab, search, runPeopleSearch]);
 
-  const handleFollow = (id: string, e: React.MouseEvent) => {
+  const handleFollow = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setFollowing(p => ({ ...p, [id]: !p[id] }));
+    if (!user) return;
+    try {
+      const res = await axiosInstance.post(`/user/follow/${id}`, { userId: user._id });
+      const newFollowing: string[] = res.data.following || [];
+      setFollowing(prev => ({ ...prev, [id]: newFollowing.includes(id) }));
+      if (typeof updateUser === "function") {
+        updateUser({ following: newFollowing });
+      }
+    } catch (err) {
+      console.error("Follow error:", err);
+    }
   };
 
   const handleUserNavigate = (userId: string) => {
@@ -512,20 +540,20 @@ export default function ExplorePage() {
             </div>
 
             {/* Who to Follow Suggested Users Card */}
-            {activeCategory === "For you" && (
+            {activeCategory === "For you" && suggestions.length > 0 && (
               <div className="px-4">
                 <h2 className="text-[#e7e9ea] font-black text-lg mb-3">{t("Who to follow")}</h2>
                 <div className="rounded-2xl border border-[#2f3336] bg-[#16181c]/30 overflow-hidden mb-6">
-                  {staticSuggestions.map(p => (
+                  {suggestions.map(p => (
                     <div
-                      key={p.id}
-                      onClick={() => handleUserNavigate(p.username)} // wait, handleUserNavigate expects user._id, but suggestions have username. We can fetch or match. Below we map suggestions correctly!
+                      key={p._id}
+                      onClick={() => handleUserNavigate(p._id)}
                       className="px-4 py-3.5 hover:bg-white/5 transition-colors flex items-center justify-between border-b border-[#2f3336] last:border-0 cursor-pointer"
                     >
                       <div className="flex items-center space-x-3 min-w-0 flex-1 mr-3">
                         <Avatar className="h-10 w-10 flex-shrink-0">
                           <AvatarImage src={p.avatar} className="object-cover" />
-                          <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">{p.displayName[0]}</AvatarFallback>
+                          <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">{p.displayName?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <div className="flex items-center space-x-1">
@@ -537,14 +565,14 @@ export default function ExplorePage() {
                         </div>
                       </div>
                       <button
-                        onClick={(e) => handleFollow(p.id, e)}
+                        onClick={(e) => handleFollow(p._id, e)}
                         className={`flex-shrink-0 font-extrabold rounded-full px-4 py-1.5 text-xs transition-colors ${
-                          following[p.id]
+                          following[p._id]
                             ? "border border-[#536471] text-[#e7e9ea] hover:border-[#f4212e] hover:text-[#f4212e] hover:bg-[#f4212e]/10"
                             : "bg-[#e7e9ea] text-black hover:bg-[#d7d9db]"
                         }`}
                       >
-                        {following[p.id] ? t("Following") : t("Follow")}
+                        {following[p._id] ? t("Following") : t("Follow")}
                       </button>
                     </div>
                   ))}

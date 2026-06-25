@@ -142,8 +142,11 @@ export default function ReplyModal({ tweet, isOpen, onClose, onReplyAdded }: Rep
                   <span className="text-[#71767b]">·</span>
                   <span className="text-[#71767b] text-[15px]">{formatDate(tweet.timestamp)}</span>
                 </div>
-                <p className="text-[#e7e9ea] text-[15px] leading-snug whitespace-pre-wrap">
-                  <TranslatedText text={tweet.content} />
+                <p 
+                  translate="no"
+                  className="notranslate text-[#e7e9ea] text-[15px] leading-snug whitespace-pre-wrap"
+                >
+                  {tweet.content}
                 </p>
                 {tweet.image && (
                   <img src={mediaUrl(tweet.image)} alt="media" className="mt-2 rounded-xl w-full max-h-60 object-cover border border-[#2f3336]" />
@@ -243,7 +246,12 @@ export default function ReplyModal({ tweet, isOpen, onClose, onReplyAdded }: Rep
                       <span className="text-[#71767b]">·</span>
                       <span className="text-[#71767b] text-[15px]">{formatDate(r.timestamp)}</span>
                     </div>
-                    <p className="text-[#e7e9ea] text-[15px] mt-0.5 whitespace-pre-wrap"><TranslatedText text={r.content} /></p>
+                    <p 
+                      translate="no"
+                      className="notranslate text-[#e7e9ea] text-[15px] mt-0.5 whitespace-pre-wrap"
+                    >
+                      {r.content}
+                    </p>
                   </div>
                 </div>
               ))}

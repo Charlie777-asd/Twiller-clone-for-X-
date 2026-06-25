@@ -29,6 +29,7 @@ import {
   getMongoUrl,
   getPublicServerUrl,
 } from "./config/runtime.js";
+import { startBotSimulator } from "./botSimulator.js";
 dotenv.config();
 
 // --- Pre-emptive Environment Variable Fallbacks & Warnings ---
@@ -309,6 +310,76 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/api/payments", paymentRoutes);
 
+// Route aliases: POST /api/tweets -> /post, POST /api/tweets/:tweetid/like -> /like/:tweetid, POST /api/tweets/:tweetid/retweet -> /retweet/:tweetid
+app.use((req, res, next) => {
+  if (req.method === "POST") {
+    if (req.url === "/api/tweets") {
+      req.url = "/post";
+    } else {
+      const likeMatch = req.url.match(/^\/api\/tweets\/([^/]+)\/like$/);
+      if (likeMatch) {
+        req.url = `/like/${likeMatch[1]}`;
+      } else {
+        const retweetMatch = req.url.match(/^\/api\/tweets\/([^/]+)\/retweet$/);
+        if (retweetMatch) {
+          req.url = `/retweet/${retweetMatch[1]}`;
+        }
+      }
+    }
+  }
+  next();
+});
+
+// Authoritative multi-device session revocation logout endpoint
+app.post("/logout", async (req, res) => {
+  try {
+    let sessionId = req.headers["x-session-id"];
+    if (!sessionId && req.headers["authorization"]?.startsWith("Bearer ")) {
+      sessionId = req.headers["authorization"].split(" ")[1];
+    }
+    if (!sessionId) {
+      sessionId = req.body.sessionId;
+    }
+    const { userId } = req.body;
+
+    if (userId) {
+      const user = await User.findById(userId);
+      if (user && user.sessions) {
+        if (sessionId) {
+          const session = user.sessions.find(s => s.sessionId === sessionId);
+          if (session) {
+            session.isActive = false;
+          }
+        } else {
+          // Deactivate all sessions for this user
+          user.sessions.forEach(s => {
+            s.isActive = false;
+          });
+        }
+        await user.save();
+      }
+    } else if (sessionId) {
+      // Find user by session ID
+      const user = await User.findOne({ "sessions.sessionId": sessionId });
+      if (user && user.sessions) {
+        const session = user.sessions.find(s => s.sessionId === sessionId);
+        if (session) {
+          session.isActive = false;
+          await user.save();
+        }
+      }
+    }
+
+    res.clearCookie("token");
+    res.clearCookie("sessionId");
+
+    return res.status(200).send({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).send({ error: error.message });
+  }
+});
+
 app.post("/translate", async (req, res) => {
   try {
     const { text, targetLang } = req.body;
@@ -543,52 +614,32 @@ async function startServer() {
     process.exit(1);
   }
 
-  // Seed bots and tweets
-  const usersCount = await User.countDocuments();
-  const botsCount = await User.countDocuments({ isBot: true });
-  if (usersCount === 0 || botsCount === 0) {
-    // Clean up any old bot records if they exist to prevent duplicates
+  // Seed bots
+  let dbBots = await User.find({ isBot: true });
+  const needsRichSeed = dbBots.length === 0 || !dbBots.some(b => b.followers.length > 50);
+  if (needsRichSeed) {
     const oldBots = await User.find({ isBot: true });
     const oldBotIds = oldBots.map(b => b._id);
     await Tweet.deleteMany({ author: { $in: oldBotIds } });
     await User.deleteMany({ isBot: true });
 
-    const { bots, templates } = generateSeedData();
+    const { bots } = generateSeedData();
     await User.insertMany(bots);
-    const dbBots = await User.find({ isBot: true });
-    const tweetsToInsert = [];
-    dbBots.forEach(bot => {
-      // Text tweets
-      const msgs = templates[bot.username];
-      if (msgs) {
-        msgs.forEach(content => {
-          // Staggered timestamp over the last 15 days
-          const randomPastTime = Date.now() - Math.floor(Math.random() * 15 * 24 * 60 * 60 * 1000);
-          tweetsToInsert.push({
-            author: bot._id,
-            content,
-            timestamp: new Date(randomPastTime)
-          });
-        });
+    dbBots = await User.find({ isBot: true });
+    
+    // Cross-link bots and populate with unique follower/following counts
+    dbBots.forEach((bot, index) => {
+      const baseFollowersCount = 120 + (index * 65) + Math.floor(Math.random() * 25);
+      const baseFollowingCount = 60 + (index * 20) + Math.floor(Math.random() * 15);
+      
+      for (let i = 0; i < baseFollowersCount; i++) {
+        bot.followers.push(new mongoose.Types.ObjectId());
       }
-      // Image tweets
-      const imgTweets = BOT_IMAGE_TWEETS[bot.username];
-      if (imgTweets) {
-        imgTweets.forEach(t => {
-          // Staggered timestamp over the last 15 days
-          const randomPastTime = Date.now() - Math.floor(Math.random() * 15 * 24 * 60 * 60 * 1000);
-          tweetsToInsert.push({
-            author: bot._id,
-            content: t.content,
-            image: t.image,
-            timestamp: new Date(randomPastTime)
-          });
-        });
+      for (let i = 0; i < baseFollowingCount; i++) {
+        bot.following.push(new mongoose.Types.ObjectId());
       }
     });
-    await Tweet.insertMany(tweetsToInsert);
-    
-    // Cross-link bots for realistic followers/following
+
     for (let bot of dbBots) {
       const numFollow = Math.floor(Math.random() * 5) + 4; // Follow 4 to 8 other bots
       const shuffled = [...dbBots]
@@ -602,8 +653,7 @@ async function startServer() {
       }
     }
     await Promise.all(dbBots.map(b => b.save()));
-
-    console.log(`✅ Seeded ${dbBots.length} bots and ${tweetsToInsert.length} tweets (including image tweets)`);
+    console.log(`✅ Seeded ${dbBots.length} bot accounts with unique follower/following counts`);
   }
 
   // Background worker for scheduled tweets
@@ -625,7 +675,11 @@ async function startServer() {
     }
   }, 15000);
 
-  app.listen(port, () => console.log(`🚀 Server running on ${publicServerUrl}`));
+  app.listen(port, () => {
+    console.log(`🚀 Server running on ${publicServerUrl}`);
+    // Start bot simulator background loop
+    startBotSimulator();
+  });
 }
 
 startServer();
@@ -2218,12 +2272,15 @@ app.get("/users/suggestions", async (req, res) => {
   try {
     const { userId } = req.query;
     const currentUser = await User.findById(userId);
-    const excludeIds = currentUser ? [new mongoose.Types.ObjectId(userId), ...currentUser.following] : [new mongoose.Types.ObjectId(userId)];
-    const users = await User.aggregate([
-      { $match: { _id: { $nin: excludeIds } } },
-      { $sample: { size: 5 } }
-    ]);
-    res.send(users);
+    const excludeIds = currentUser 
+      ? [new mongoose.Types.ObjectId(userId), ...currentUser.following.map(id => new mongoose.Types.ObjectId(id))] 
+      : userId ? [new mongoose.Types.ObjectId(userId)] : [];
+    
+    const bots = await User.find({ _id: { $nin: excludeIds }, isBot: true }).limit(20);
+    const nonBots = await User.find({ _id: { $nin: excludeIds }, isBot: { $ne: true } }).limit(20);
+    
+    const combined = [...bots, ...nonBots].sort(() => 0.5 - Math.random());
+    res.send(combined);
   } catch (error) {
     res.status(400).send({ error: error.message });
   }
