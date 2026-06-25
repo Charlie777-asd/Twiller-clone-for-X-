@@ -139,49 +139,47 @@ function SuccessModal({
   const plan = PLANS.find(p => p.id === data.plan);
   const { t } = useLanguage();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="w-full max-w-sm bg-[#0d0d0d] border border-[#2f3336] rounded-2xl shadow-2xl overflow-hidden text-center">
+    <div className="fixed inset-0 z-50 flex items-start justify-center sm:items-center bg-black/80 backdrop-blur-md p-4 pt-12 sm:pt-4 overflow-y-auto">
+      <div className="w-full max-w-sm bg-[#0d0d0d] border border-[#2f3336] rounded-2xl shadow-2xl overflow-hidden text-center mt-4 sm:mt-0 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-8 pb-4">
+        <div className="p-6 pb-2 sm:p-8 sm:pb-4">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
+            className="w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-5"
             style={{ background: `${plan?.color}20`, border: `2px solid ${plan?.color}` }}
           >
-            <CheckCircle2 size={36} style={{ color: plan?.color }} />
+            <CheckCircle2 className="h-7 w-7 sm:h-9 sm:w-9" style={{ color: plan?.color }} />
           </div>
-          <h2 className="text-white font-extrabold text-2xl mb-2">{t("Payment Successful! 🎉")}</h2>
-          <p className="text-[#71767b] text-sm mb-5">
+          <h2 className="text-white font-extrabold text-xl sm:text-2xl mb-1 sm:mb-2">{t("Payment Successful! 🎉")}</h2>
+          <p className="text-[#71767b] text-xs sm:text-sm mb-3 sm:mb-5">
             {t("Your")} <strong style={{ color: plan?.color }}>{t(data.planName)}</strong> {t("plan is now active. A detailed invoice has been sent to your email.")}
           </p>
         </div>
 
         {/* Invoice details */}
-        <div className="mx-6 bg-[#16181c] rounded-xl p-4 text-left space-y-2 mb-5 border border-[#2f3336]">
-          <div className="flex justify-between text-sm">
+        <div className="mx-5 sm:mx-6 bg-[#16181c] rounded-xl p-3.5 sm:p-4 text-left space-y-1.5 sm:space-y-2 mb-4 sm:mb-5 border border-[#2f3336]">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-[#71767b]">{t("Payment ID")}</span>
-            <span className="text-white font-mono text-xs truncate max-w-[180px]">{data.paymentId}</span>
+            <span className="text-white font-mono text-xs truncate max-w-[150px] sm:max-w-[180px]">{data.paymentId}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-[#71767b]">{t("Order ID")}</span>
-            <span className="text-white font-mono text-xs truncate max-w-[180px]">{data.orderId}</span>
+            <span className="text-white font-mono text-xs truncate max-w-[150px] sm:max-w-[180px]">{data.orderId}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-[#71767b]">{t("Plan")}</span>
             <span className="text-white font-bold">{data.planName}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-[#71767b]">{t("Amount Paid")}</span>
             <span className="font-bold text-[#00ba7c]">₹{data.amount}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-[#71767b]">{t("Daily Limit")}</span>
             <span className="text-white font-bold">{t(plan?.tweetLimit || "")}</span>
           </div>
         </div>
 
-
-
-        <div className="px-6 pb-6">
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
           <button
             onClick={onClose}
             className="w-full py-3 rounded-full font-extrabold text-black text-[15px] transition-all hover:opacity-90 active:scale-95"

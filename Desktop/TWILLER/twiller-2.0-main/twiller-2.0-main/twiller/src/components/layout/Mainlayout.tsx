@@ -331,9 +331,9 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
           />
 
           {/* Drawer Container */}
-          <div className="relative flex flex-col w-[280px] max-w-[80vw] h-full bg-black border-r border-[#2f3336] shadow-2xl p-4 overflow-y-auto animate-drawer-slide-in text-white">
+          <div className="relative flex flex-col w-[280px] landscape:w-[480px] max-w-[80vw] landscape:max-w-[95vw] h-full bg-black border-r border-[#2f3336] shadow-2xl p-4 overflow-y-auto animate-drawer-slide-in text-white">
             {/* Header: Close button and user details */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 landscape:mb-2">
               <span className="font-bold text-lg">{t("account_info")}</span>
               <button
                 onClick={() => setIsDrawerOpen(false)}
@@ -345,29 +345,31 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             {/* Profile Info */}
-            <div className="mb-6 pb-4 border-b border-[#2f3336]">
+            <div className="mb-6 landscape:mb-3 pb-4 landscape:pb-2 border-b border-[#2f3336]">
               <button
                 onClick={() => {
                   setCurrentPage("profile");
                   setIsDrawerOpen(false);
                 }}
-                className="flex flex-col items-start text-left w-full group"
+                className="flex flex-col landscape:flex-row landscape:items-center landscape:gap-3 text-left w-full group"
               >
-                <Avatar className="h-12 w-12 mb-3">
+                <Avatar className="h-12 w-12 landscape:h-10 landscape:w-10 mb-3 landscape:mb-0">
                   <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
                   <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-lg">
                     {user.displayName?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-extrabold text-[17px] text-[#e7e9ea] hover:underline leading-tight truncate max-w-full">
-                  {user.displayName}
-                </span>
-                <span className="text-[#71767b] text-sm truncate max-w-full">
-                  @{user.username}
-                </span>
+                <div>
+                  <span className="font-extrabold text-[17px] landscape:text-[15px] text-[#e7e9ea] hover:underline leading-tight truncate block max-w-full">
+                    {user.displayName}
+                  </span>
+                  <span className="text-[#71767b] text-sm landscape:text-xs truncate block max-w-full">
+                    @{user.username}
+                  </span>
+                </div>
               </button>
 
-              <div className="flex gap-4 mt-3 text-sm">
+              <div className="flex gap-4 mt-3 landscape:mt-2 text-sm landscape:text-xs">
                 <span className="text-[#71767b]">
                   <strong className="text-white font-bold">{user.following?.length || 0}</strong> {t("following")}
                 </span>
@@ -378,7 +380,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             {/* Navigation links */}
-            <nav className="flex-1 space-y-1">
+            <nav className="flex-1 space-y-1 landscape:space-y-0 landscape:grid landscape:grid-cols-2 landscape:gap-x-4 landscape:gap-y-1">
               {[
                 { name: "home", icon: Home, label: t("home") },
                 { name: "explore", icon: Search, label: t("explore") },
@@ -398,24 +400,24 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
                       setCurrentPage(item.name as any);
                       setIsDrawerOpen(false);
                     }}
-                    className={`w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
+                    className={`w-full flex items-center gap-4 px-3 py-3 landscape:py-2 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
                       isActive ? "font-extrabold text-white" : "font-normal text-[#e7e9ea]"
                     }`}
                   >
                     <div className="relative">
-                      <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 1.75} />
+                      <Icon className="h-6 w-6 landscape:h-5 landscape:w-5" strokeWidth={isActive ? 2.5 : 1.75} />
                       {item.count ? item.count > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] bg-[#1d9bf0] text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
                           {item.count > 9 ? "9+" : item.count}
                         </span>
                       ) : null}
                     </div>
-                    <span className="text-[17px]">{item.label}</span>
+                    <span className="text-[17px] landscape:text-[15px]">{item.label}</span>
                   </button>
                 );
               })}
 
-              <div className="border-t border-[#2f3336] my-2 pt-2" />
+              <div className="border-t border-[#2f3336] my-2 pt-2 landscape:col-span-2 landscape:my-1 landscape:pt-1" />
 
               {/* Settings & Privacy */}
               <button
@@ -423,12 +425,12 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
                   setCurrentPage("settings");
                   setIsDrawerOpen(false);
                 }}
-                className={`w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
+                className={`w-full flex items-center gap-4 px-3 py-3 landscape:py-2 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
                   currentPage === "settings" ? "font-extrabold text-white" : "font-normal text-[#e7e9ea]"
                 }`}
               >
-                <Settings className="h-6 w-6" strokeWidth={currentPage === "settings" ? 2.5 : 1.75} />
-                <span className="text-[17px]">{t("settings")}</span>
+                <Settings className="h-6 w-6 landscape:h-5 landscape:w-5" strokeWidth={currentPage === "settings" ? 2.5 : 1.75} />
+                <span className="text-[17px] landscape:text-[15px]">{t("settings")}</span>
               </button>
 
               {/* Language selection */}
@@ -437,10 +439,10 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
                   setShowLanguageModal(true);
                   setIsDrawerOpen(false);
                 }}
-                className="w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-[#e7e9ea] text-left"
+                className="w-full flex items-center gap-4 px-3 py-3 landscape:py-2 rounded-full hover:bg-white/10 active:scale-95 transition-all text-[#e7e9ea] text-left"
               >
-                <Globe className="h-6 w-6" strokeWidth={1.75} />
-                <span className="text-[17px]">{t("change_language")}</span>
+                <Globe className="h-6 w-6 landscape:h-5 landscape:w-5" strokeWidth={1.75} />
+                <span className="text-[17px] landscape:text-[15px]">{t("change_language")}</span>
               </button>
 
               {/* Help Center */}
@@ -449,15 +451,15 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
                   setCurrentPage("helpdesk");
                   setIsDrawerOpen(false);
                 }}
-                className={`w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
+                className={`w-full flex items-center gap-4 px-3 py-3 landscape:py-2 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
                   currentPage === "helpdesk" ? "font-extrabold text-white" : "font-normal text-[#e7e9ea]"
                 }`}
               >
-                <HelpCircle className="h-6 w-6" strokeWidth={currentPage === "helpdesk" ? 2.5 : 1.75} />
-                <span className="text-[17px]">{t("Help Desk")}</span>
+                <HelpCircle className="h-6 w-6 landscape:h-5 landscape:w-5" strokeWidth={currentPage === "helpdesk" ? 2.5 : 1.75} />
+                <span className="text-[17px] landscape:text-[15px]">{t("Help Desk")}</span>
               </button>
 
-              <div className="border-t border-[#2f3336] my-2 pt-2" />
+              <div className="border-t border-[#2f3336] my-2 pt-2 landscape:col-span-2 landscape:my-1 landscape:pt-1" />
 
               {/* Logout */}
               <button
@@ -465,10 +467,10 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
                   setIsDrawerOpen(false);
                   logout();
                 }}
-                className="w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-red-500/10 active:scale-95 transition-all text-red-500 text-left font-bold"
+                className="w-full flex items-center gap-4 px-3 py-3 landscape:py-2 rounded-full hover:bg-red-500/10 active:scale-95 transition-all text-red-500 text-left font-bold landscape:col-span-2"
               >
-                <LogOut className="h-6 w-6" strokeWidth={2} />
-                <span className="text-[17px]">{t("logout")}</span>
+                <LogOut className="h-6 w-6 landscape:h-5 landscape:w-5" strokeWidth={2} />
+                <span className="text-[17px] landscape:text-[15px]">{t("logout")}</span>
               </button>
             </nav>
           </div>

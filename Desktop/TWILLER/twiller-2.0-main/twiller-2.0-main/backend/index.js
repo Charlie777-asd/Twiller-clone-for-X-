@@ -948,7 +948,27 @@ app.post("/register", async (req, res) => {
       }
     }
 
-    return res.status(201).send(newUser);
+    const uaString = req.headers["user-agent"] || "";
+    const parser = new UAParser(uaString);
+    const browser = parser.getBrowser();
+    const os = parser.getOS();
+    const device = parser.getDevice();
+    const deviceCategory = device.type === "mobile" || device.type === "tablet" ? "mobile" : "desktop";
+    const ipAddress = req.ip || req.connection.remoteAddress || "Unknown IP";
+
+    const loginRecord = {
+      timestamp: new Date(),
+      browser: browser.name || "Unknown Browser",
+      os: os.name || "Unknown OS",
+      deviceCategory,
+      ipAddress
+    };
+    const sessionId = uuidv4();
+    await recordLoginHistory(newUser, loginRecord, sessionId);
+
+    const userJson = newUser.toObject();
+    userJson.sessionId = sessionId;
+    return res.status(201).send(userJson);
   } catch (error) {
     return res.status(400).send({ error: error.message });
   }
@@ -987,20 +1007,17 @@ app.get("/loggedinuser", async (req, res) => {
       const os = parser.getOS();
       const device = parser.getDevice();
       const deviceCategory = device.type === "mobile" || device.type === "tablet" ? "mobile" : "desktop";
-      const ipAddress = req.ip || req.connection.remoteAddress;
+      const ipAddress = req.ip || req.connection.remoteAddress || "Unknown IP";
 
       const sessionId = uuidv4();
-      if (!user.sessions) user.sessions = [];
-      user.sessions.push({
-        sessionId,
+      const loginRecord = {
         timestamp: new Date(),
-        browser: browser.name || "Unknown",
-        os: os.name || "Unknown",
+        browser: browser.name || "Unknown Browser",
+        os: os.name || "Unknown OS",
         deviceCategory,
-        ipAddress,
-        isActive: true
-      });
-      await user.save();
+        ipAddress
+      };
+      await recordLoginHistory(user, loginRecord, sessionId);
 
       const userJson = user.toObject();
       userJson.sessionId = sessionId;
@@ -1213,15 +1230,34 @@ app.post("/register/phone", async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const email = `${normPhone.replace(/\D/g, "")}@phone.twiller.local`;
 
+    const uaString = req.headers["user-agent"] || "";
+    const parser = new UAParser(uaString);
+    const browser = parser.getBrowser();
+    const os = parser.getOS();
+    const device = parser.getDevice();
+    const deviceCategory = device.type === "mobile" || device.type === "tablet" ? "mobile" : "desktop";
+    const ipAddress = req.ip || req.connection.remoteAddress || "Unknown IP";
+
+    const loginRecord = {
+      timestamp: new Date(),
+      browser: browser.name || "Unknown Browser",
+      os: os.name || "Unknown OS",
+      deviceCategory,
+      ipAddress
+    };
+    const sessionId = uuidv4();
+
     if (existing) {
       existing.passwordHash = passwordHash;
       existing.username = username;
       existing.displayName = displayName;
       existing.phoneVerified = true;
       existing.lastPasswordChange = new Date();
-      await existing.save();
+      await recordLoginHistory(existing, loginRecord, sessionId);
       whatsappOtpStore.delete(normPhone);
-      return res.status(200).send(existing);
+      const userJson = existing.toObject();
+      userJson.sessionId = sessionId;
+      return res.status(200).send(userJson);
     }
 
     const newUser = new User({
@@ -1234,9 +1270,11 @@ app.post("/register/phone", async (req, res) => {
       lastPasswordChange: new Date(),
       phoneVerified: true,
     });
-    await newUser.save();
+    await recordLoginHistory(newUser, loginRecord, sessionId);
     whatsappOtpStore.delete(normPhone);
-    return res.status(201).send(newUser);
+    const userJson = newUser.toObject();
+    userJson.sessionId = sessionId;
+    return res.status(201).send(userJson);
   } catch (error) {
     return res.status(400).send({ error: error.message });
   }
@@ -2122,39 +2160,6 @@ const getBotTemplates = () => {
 
 app.get("/post", async (req, res) => {
   try {
-    // Generate a new bot tweet on feed fetch to simulate real-time new posts coming to the top
-    try {
-      const bots = await User.find({ isBot: true });
-      if (bots.length > 0) {
-        const randomBot = bots[Math.floor(Math.random() * bots.length)];
-        const templates = getBotTemplates();
-        const botMsgs = templates[randomBot.username] || [];
-        if (botMsgs.length > 0) {
-          const content = botMsgs[Math.floor(Math.random() * botMsgs.length)];
-          
-          // Check if this exact bot-message was posted in the last 2 minutes to prevent spamming
-          const recentTweet = await Tweet.findOne({
-            author: randomBot._id,
-            content: content,
-            timestamp: { $gte: new Date(Date.now() - 2 * 60 * 1000) }
-          });
-          
-          if (!recentTweet) {
-            const newTweet = new Tweet({
-              author: randomBot._id,
-              content: content,
-              timestamp: new Date(),
-              notificationsSent: true
-            });
-            await newTweet.save();
-            await processTweetNotifications(newTweet);
-          }
-        }
-      }
-    } catch (botErr) {
-      console.warn("Failed to generate dynamic bot tweet:", botErr.message);
-    }
-
     const tweets = await Tweet.find(publishedTweetFilter).sort({ timestamp: -1 }).populate("author");
     return res.status(200).send(tweets);
   } catch (error) {
@@ -3065,14 +3070,14 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
         await mailTransporter.sendMail({
           from: '"Twiller Support" <support@twiller.com>',
           to: ticket.email,
-          subject: `🎫 Twiller Support Ticket Received [${formattedId}]`,
+          subject: `🎫 Twiller Support Ticket Raised [${formattedId}]`,
           html: generateProfessionalEmailTemplate(
-            "Ticket Received",
-            `Hi <strong>${name}</strong>,<br><br>We have received your support ticket regarding <strong>${subject}</strong>. Our support team has logged your inquiry and is reviewing it. We will get back to you shortly.`,
+            "Ticket Raised",
+            `Hi <strong>${name}</strong>,<br><br>We have received your support ticket regarding <strong>${subject}</strong>. Your ticket is raised, and we will solve your issues shortly.`,
             formattedId,
             "Ticket ID"
           ),
-          text: `Hi ${name}, we received your ticket: ${subject}. Ticket ID: ${formattedId}.`,
+          text: `Hi ${name}, your support ticket has been raised regarding: ${subject}. We will solve your issues shortly. Ticket ID: ${formattedId}.`,
         });
       } catch (mailErr) {
         console.warn("⚠️ Support Ticket email notification failed:", mailErr.message);
@@ -3082,64 +3087,12 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
     // 2. Send confirmation via WhatsApp if phone number is present
     if (ticket.phone) {
       try {
-        const msg = `🎫 *Twiller Support*\n\nHi ${name},\n\nWe have received your support ticket regarding *${subject}*.\n\n• *Ticket ID*: ${formattedId}\n• *Description*: ${description}\n\nOur billing and support desk is reviewing your case and will respond shortly.`;
+        const msg = `🎫 *Twiller Support*\n\nHi ${name},\n\nWe have received your support ticket regarding *${subject}*.\n\n• *Ticket ID*: ${formattedId}\n\nYour ticket has been raised, and we will solve your issues shortly.`;
         await sendSmsOtp(ticket.phone, null, msg);
       } catch (smsErr) {
         console.warn("⚠️ Support Ticket WhatsApp notification failed:", smsErr.message);
       }
     }
-
-    // 3. Simulate Admin Auto-reply after 20 seconds
-    setTimeout(async () => {
-      try {
-        const ticketId = ticket._id;
-        const replyText = `Hello ${name},\n\nWe have verified your account details and confirmed your transaction. The payment issue is resolved, and your subscription is active. Please reload your Twiller page. Let us know if you need further assistance!`;
-        
-        const updatedTicket = await SupportTicket.findByIdAndUpdate(
-          ticketId,
-          { $set: { status: "resolved", adminReply: replyText } },
-          { new: true }
-        );
-
-        console.log(`🎫 Auto-resolved Ticket ${ticketId} with simulated Admin Reply.`);
-
-        // Notify user about resolution on WhatsApp
-        if (updatedTicket.phone) {
-          const resolvedMsg = `🎫 *Twiller Support Resolved*\n\nHi ${updatedTicket.name},\n\nYour support ticket [${formattedId}] has been resolved!\n\n*Admin Reply*:\n"${replyText}"\n\nThank you for choosing Twiller!`;
-          await sendSmsOtp(updatedTicket.phone, null, resolvedMsg);
-        }
-
-        // Notify user about resolution on Email
-        if (updatedTicket.email && !updatedTicket.email.includes("@phone.twiller.local")) {
-          try {
-            await mailTransporter.sendMail({
-              from: '"Twiller Support" <support@twiller.com>',
-              to: updatedTicket.email,
-              subject: `🎫 Twiller Support Ticket Resolved [${formattedId}]`,
-              html: `
-                <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:480px;margin:0 auto;background:#000;border:1px solid #2f3336;border-radius:16px;overflow:hidden">
-                  <div style="background:#0a0a0a;padding:24px;text-align:center;border-bottom:1px solid #2f3336">
-                    <h2 style="color:#00ba7c;font-size:18px;font-weight:800;margin:0">✅ Ticket Resolved</h2>
-                  </div>
-                  <div style="padding:24px">
-                    <p style="color:#71767b;font-size:14px;margin:0 0 16px">Hi <strong style="color:#e7e9ea">${updatedTicket.name}</strong>,</p>
-                    <p style="color:#71767b;font-size:14px;margin:0 0 16px">Your Support Ticket <strong>#${formattedId}</strong> regarding <strong>${updatedTicket.subject}</strong> has been resolved:</p>
-                    <div style="background:#16181c;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #2f3336;color:#e7e9ea;font-size:13px;line-height:1.5;">
-                      ${replyText.replace(/\n/g, "<br>")}
-                    </div>
-                    <p style="color:#536471;font-size:11px;margin:0">If you have further questions, feel free to submit a new ticket.</p>
-                  </div>
-                </div>`,
-              text: `Hi ${updatedTicket.name}, your support ticket has been resolved: ${replyText}`,
-            });
-          } catch (mailErr) {
-            console.warn("⚠️ Support Ticket resolution email failed:", mailErr.message);
-          }
-        }
-      } catch (err) {
-        console.error("Error in auto-resolving ticket:", err);
-      }
-    }, 20000);
 
     return res.status(201).send(ticket);
   } catch (error) {

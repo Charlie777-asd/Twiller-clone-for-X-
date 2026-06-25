@@ -245,7 +245,7 @@ export default function ProfilePage() {
     { value: "media", label: t("media") || "Media" },
     { value: "highlights", label: t("highlights_tab") || "Highlights" },
     { value: "articles", label: t("articles_tab") || "Articles" },
-    { value: "sessions", label: t("login_history") || "Sessions & Login History" },
+    { value: "sessions", label: t("sessions_tab") || "Sessions" },
   ];
 
   const emptyMessages: Record<string, { title: string; sub: string }> = {
@@ -273,7 +273,7 @@ export default function ProfilePage() {
       {/* ── Cover Photo ────────────────────────────────────────────────── */}
       <div className="relative">
         <div 
-          className="h-52 bg-gradient-to-r from-[#1d9bf0] via-[#7856ff] to-[#f91880] relative bg-cover bg-center"
+          className="h-32 sm:h-52 bg-gradient-to-r from-[#1d9bf0] via-[#7856ff] to-[#f91880] relative bg-cover bg-center"
           style={{ backgroundImage: user.coverImage ? `url(${mediaUrl(user.coverImage)})` : undefined }}
         >
           <button 
@@ -285,11 +285,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Avatar */}
-        <div className="absolute -bottom-16 left-4">
+        <div className="absolute -bottom-10 sm:-bottom-16 left-4">
           <div className="relative group">
-            <Avatar className="h-32 w-32 border-4 border-black shadow-lg">
+            <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-4 border-black shadow-lg">
               <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
-              <AvatarFallback className="bg-[#1d9bf0] text-white text-4xl font-bold">
+              <AvatarFallback className="bg-[#1d9bf0] text-white text-2xl sm:text-4xl font-bold">
                 {user.displayName?.[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -314,7 +314,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Profile Info ───────────────────────────────────────────────── */}
-      <div className="px-4 mt-16 pb-3">
+      <div className="px-4 mt-10 sm:mt-16 pb-3">
         <div className="flex items-start justify-between mb-1">
           <div>
             <h2 className="text-[#e7e9ea] text-[22px] font-extrabold leading-tight">
@@ -387,81 +387,24 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Interests Section ──────────────────────────────────────────────── */}
-      <div className="px-4 pb-4 border-b border-[#2f3336]">
-        <div className="flex items-center gap-2 mb-2">
-          <Tag className="h-5 w-5 text-[#1d9bf0]" />
-          <h3 className="text-[#e7e9ea] font-bold text-lg">{t("your_interests") || "Your Interests"}</h3>
-        </div>
-        <p className="text-[#71767b] text-sm mb-3">{t("add_topics_desc") || "Add topics you're interested in to get personalized notifications when someone posts about them."}</p>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {interests.map((interest) => (
-            <span key={interest} className="inline-flex items-center space-x-1 bg-[#1d9bf0]/10 text-[#1d9bf0] px-3 py-1 rounded-full text-sm font-medium border border-[#1d9bf0]/20 group">
-              <span>{interest}</span>
-              <button
-                onClick={() => handleRemoveInterest(interest)}
-                className="hover:text-white transition-colors ml-1 opacity-70 hover:opacity-100"
-                aria-label={`Remove ${interest}`}
-              >×</button>
-            </span>
-          ))}
-          {interests.length === 0 && (
-            <span className="text-[#71767b] text-sm italic">{t("no_interests") || "No interests added yet. Add some below!"}</span>
-          )}
-        </div>
-        <form onSubmit={handleAddInterest} className="flex items-center space-x-2">
-          <input
-            type="text"
-            placeholder={t("interest_placeholder") || "e.g. Technology, Gaming, Science…"}
-            value={interestInput}
-            onChange={(e) => setInterestInput(e.target.value)}
-            className="flex-1 bg-[#16181c] border border-[#536471] focus:border-[#1d9bf0] rounded-xl px-4 py-2 text-sm text-[#e7e9ea] placeholder-[#71767b] outline-none transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={savingInterest || !interestInput.trim()}
-            className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold text-sm px-5 py-2 rounded-full transition-colors disabled:opacity-50"
-          >
-            {savingInterest ? (t("adding") || "Adding…") : (t("add") || "Add")}
-          </button>
-        </form>
 
-        {/* Browser Notifications Toggle */}
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2f3336]">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-[#1d9bf0]/10 flex items-center justify-center">
-              <Bell className="h-5 w-5 text-[#1d9bf0]" />
-            </div>
-            <div>
-              <p className="text-[#e7e9ea] font-bold text-sm">{t("browser_keyword_notifications") || "Browser Keyword Notifications"}</p>
-              <p className="text-[#71767b] text-xs">{t("receive_os_popups_desc") || "Receive OS-level popups for \"cricket\", \"science\" or interest topics"}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleToggleNotifications}
-            className={`relative w-12 h-6 rounded-full transition-colors flex items-center ${notificationsEnabled ? "bg-[#1d9bf0]" : "bg-[#536471]"}`}
-          >
-            <span className={`absolute w-4 h-4 bg-white rounded-full transition-all shadow-sm ${notificationsEnabled ? "left-7" : "left-1"}`} />
-          </button>
-        </div>
-      </div>
 
 
       {/* ── Profile Tabs ───────────────────────────────────────────────── */}
-      <div className="border-b border-[#2f3336] bg-black">
-        <div className="flex overflow-x-auto scrollbar-none">
+      <div className="border-b border-[#2f3336] bg-black sticky top-[53px] z-10">
+        <div className="flex overflow-x-auto scrollbar-none w-full">
           {profileTabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`flex-1 min-w-[80px] py-4 text-[15px] font-bold relative hover:bg-white/5 transition-all duration-200 whitespace-nowrap ${
+              className={`flex-1 min-w-[70px] sm:min-w-[80px] py-3 sm:py-4 px-2 sm:px-4 text-[13px] sm:text-[15px] font-extrabold relative hover:bg-white/5 transition-all duration-200 whitespace-nowrap ${
                 activeTab === tab.value ? "text-[#e7e9ea]" : "text-[#71767b] hover:text-[#e7e9ea]"
               }`}
             >
               <span className="relative py-1 inline-block">
                 {tab.label}
                 {activeTab === tab.value && (
-                  <span className="absolute bottom-[-16px] left-0 right-0 h-1 bg-[#1d9bf0] rounded-full animate-scale-up" />
+                  <span className="absolute bottom-[-13px] sm:bottom-[-16px] left-0 right-0 h-1 bg-[#1d9bf0] rounded-full animate-scale-up" />
                 )}
               </span>
             </button>
@@ -529,6 +472,68 @@ export default function ProfilePage() {
 
       {activeTab === "sessions" && (
         <div className="p-4 space-y-6 max-w-full">
+          {/* Interests & Notifications Preferences */}
+          <div className="bg-[#000000] border border-[#2f3336] rounded-2xl p-4 md:p-6 space-y-4">
+            <div className="flex items-center gap-2 mb-1 border-b border-[#2f3336] pb-3">
+              <Tag className="h-5 w-5 text-[#1d9bf0]" />
+              <h3 className="text-[#e7e9ea] font-extrabold text-lg">{t("your_interests") || "Your Interests"}</h3>
+            </div>
+            <p className="text-[#71767b] text-xs leading-relaxed">
+              {t("add_topics_desc") || "Add topics you're interested in to get personalized notifications when someone posts about them."}
+            </p>
+            
+            <div className="flex flex-wrap gap-2 mb-1">
+              {interests.map((interest) => (
+                <span key={interest} className="inline-flex items-center space-x-1 bg-[#1d9bf0]/10 text-[#1d9bf0] px-3 py-1 rounded-full text-xs font-semibold border border-[#1d9bf0]/20 group">
+                  <span>{interest}</span>
+                  <button
+                    onClick={() => handleRemoveInterest(interest)}
+                    className="hover:text-white transition-colors ml-1 opacity-70 hover:opacity-100"
+                    aria-label={`Remove ${interest}`}
+                  >×</button>
+                </span>
+              ))}
+              {interests.length === 0 && (
+                <span className="text-[#71767b] text-xs italic">{t("no_interests") || "No interests added yet. Add some below!"}</span>
+              )}
+            </div>
+
+            <form onSubmit={handleAddInterest} className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder={t("interest_placeholder") || "e.g. Technology, Gaming, Science…"}
+                value={interestInput}
+                onChange={(e) => setInterestInput(e.target.value)}
+                className="flex-1 bg-[#16181c] border border-[#536471] focus:border-[#1d9bf0] rounded-xl px-4 py-2 text-xs text-[#e7e9ea] placeholder-[#71767b] outline-none transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={savingInterest || !interestInput.trim()}
+                className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-extrabold text-xs px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
+              >
+                {savingInterest ? (t("adding") || "Adding…") : (t("add") || "Add")}
+              </button>
+            </form>
+
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2f3336]">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-full bg-[#1d9bf0]/10 flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-[#1d9bf0]" />
+                </div>
+                <div>
+                  <p className="text-[#e7e9ea] font-extrabold text-sm">{t("browser_keyword_notifications") || "Browser Keyword Notifications"}</p>
+                  <p className="text-[#71767b] text-[11px] leading-tight mt-0.5">{t("receive_os_popups_desc") || "Receive OS-level popups for \"cricket\", \"science\" or interest topics"}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleToggleNotifications}
+                className={`relative w-11 h-5.5 rounded-full transition-colors flex items-center ${notificationsEnabled ? "bg-[#1d9bf0]" : "bg-[#536471]"}`}
+              >
+                <span className={`absolute w-3.5 h-3.5 bg-white rounded-full transition-all shadow-sm ${notificationsEnabled ? "left-6" : "left-1"}`} />
+              </button>
+            </div>
+          </div>
+
           {/* Active Sessions Card */}
           <div className="bg-[#000000] border border-[#2f3336] rounded-2xl p-4 md:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2f3336] pb-4">

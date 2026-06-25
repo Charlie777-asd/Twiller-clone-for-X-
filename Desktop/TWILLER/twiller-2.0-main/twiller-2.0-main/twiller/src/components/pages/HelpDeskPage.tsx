@@ -70,6 +70,15 @@ export default function HelpDeskPage() {
   useEffect(() => {
     if (activeTab === "tickets") {
       fetchTickets();
+    } else if (activeTab === "submit") {
+      setSubmitSuccess(false);
+      setSubmitError("");
+      setSubject("");
+      setDescription("");
+      setPaymentId("");
+      setOrderId("");
+      setScreenshot(null);
+      setCategory("Plan Activation Failure");
     }
   }, [activeTab, fetchTickets]);
 

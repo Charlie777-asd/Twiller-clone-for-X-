@@ -530,54 +530,61 @@ const processTweetNotifications = async (tweet) => {
 // Authoritative run-once seeding logic for bot tweets
 export const seedBotTweets = async () => {
   try {
-    const dbBots = await User.find({ isBot: true });
+    const dbBots = await User.find({ isBot: true }).sort({ username: 1 });
     if (!dbBots || dbBots.length === 0) {
       console.log("⚠️ [Bot Seeding] No bot accounts found in database. Seed bots first.");
       return;
     }
 
     const botIds = dbBots.map(b => b._id);
-    
-    // Check if bot tweets are already fully seeded (exactly 400 tweets, 20 per bot)
     const existingBotTweetsCount = await Tweet.countDocuments({ author: { $in: botIds } });
-    if (existingBotTweetsCount === 400) {
-      console.log("✅ [Bot Seeding] Bot tweets are already fully seeded (exactly 400 tweets). Skipping seeding.");
+    if (existingBotTweetsCount > 0) {
+      console.log(`✅ [Bot Seeding] Bot tweets already exist (${existingBotTweetsCount}). Skipping initial seeding.`);
       return;
     }
 
-    console.log(`⏳ [Bot Seeding] Seeding exactly 400 bot tweets. Clearing existing ${existingBotTweetsCount} bot tweets first...`);
-    await Tweet.deleteMany({ author: { $in: botIds } });
-
-    const tweetsToInsert = [];
-    const totalTweetsPerBot = 20;
-
-    // Base timestamp: starting 15 days ago
-    let currentTime = Date.now() - 15 * 24 * 60 * 60 * 1000;
+    console.log("⏳ [Bot Seeding] Seeding initial 100 bot tweets in the past...");
     
-    // Stagger timestamp increment: 15 days split over 400 tweets (~54 minutes per tweet)
-    const timeIncrement = Math.floor((15 * 24 * 60 * 60 * 1000) / 400);
-
-    // Interleave the posts sequentially so no two consecutive tweets are written by the same bot account
+    // Generate the full interleaved array of 400 tweets
+    const allBotTweets = [];
+    const totalTweetsPerBot = 20;
     for (let col = 0; col < totalTweetsPerBot; col++) {
       for (let row = 0; row < dbBots.length; row++) {
         const bot = dbBots[row];
         const botSpecificTweets = BOT_TWEETS_DATA[bot.username];
         if (botSpecificTweets && botSpecificTweets[col]) {
           const tweetData = botSpecificTweets[col];
-          tweetsToInsert.push({
+          allBotTweets.push({
             author: bot._id,
             content: tweetData.content,
-            image: tweetData.image,
-            timestamp: new Date(currentTime),
-            notificationsSent: true
+            image: tweetData.image || null,
           });
-          currentTime += timeIncrement;
         }
       }
     }
 
+    // Seed the first 100 tweets in the past (e.g. over the last 15 days)
+    const seedCount = 100;
+    const tweetsToInsert = [];
+    let currentTime = Date.now() - 15 * 24 * 60 * 60 * 1000;
+    const timeIncrement = Math.floor((15 * 24 * 60 * 60 * 1000) / seedCount);
+
+    for (let i = 0; i < seedCount; i++) {
+      const tweetData = allBotTweets[i];
+      if (tweetData) {
+        tweetsToInsert.push({
+          author: tweetData.author,
+          content: tweetData.content,
+          image: tweetData.image,
+          timestamp: new Date(currentTime),
+          notificationsSent: true
+        });
+        currentTime += timeIncrement;
+      }
+    }
+
     await Tweet.insertMany(tweetsToInsert);
-    console.log(`✅ [Bot Seeding] Successfully seeded exactly ${tweetsToInsert.length} unique, alternating bot tweets with images.`);
+    console.log(`✅ [Bot Seeding] Successfully seeded the first ${tweetsToInsert.length} bot tweets.`);
   } catch (err) {
     console.error("❌ [Bot Seeding] Seeding process failed:", err);
   }
@@ -651,13 +658,69 @@ export const runBotAction = async () => {
   }
 };
 
-export const startBotSimulator = (intervalMs = 45000) => {
-  console.log(`🚀 [Bot Simulator] Service initialized. Running actions every ${intervalMs / 1000}s.`);
+// Background generator for bot tweets (posts exactly 1 tweet per interval from interleaved list)
+export const runBotPost = async () => {
+  try {
+    const dbBots = await User.find({ isBot: true }).sort({ username: 1 });
+    if (!dbBots || dbBots.length === 0) return;
+
+    const botIds = dbBots.map(b => b._id);
+    const existingBotTweetsCount = await Tweet.countDocuments({ author: { $in: botIds } });
+
+    if (existingBotTweetsCount >= 400) {
+      console.log("🤖 [Bot Simulator] All 400 unique bot tweets have been posted. Stopping bot tweeter.");
+      return;
+    }
+
+    // Generate the full interleaved array of 400 tweets
+    const allBotTweets = [];
+    const totalTweetsPerBot = 20;
+    for (let col = 0; col < totalTweetsPerBot; col++) {
+      for (let row = 0; row < dbBots.length; row++) {
+        const bot = dbBots[row];
+        const botSpecificTweets = BOT_TWEETS_DATA[bot.username];
+        if (botSpecificTweets && botSpecificTweets[col]) {
+          const tweetData = botSpecificTweets[col];
+          allBotTweets.push({
+            author: bot._id,
+            content: tweetData.content,
+            image: tweetData.image || null,
+          });
+        }
+      }
+    }
+
+    // Select the next tweet to insert
+    const nextTweetData = allBotTweets[existingBotTweetsCount];
+    if (nextTweetData) {
+      const newTweet = new Tweet({
+        author: nextTweetData.author,
+        content: nextTweetData.content,
+        image: nextTweetData.image,
+        timestamp: new Date(),
+        notificationsSent: true
+      });
+      await newTweet.save();
+
+      const postingBot = dbBots.find(b => b._id.toString() === nextTweetData.author.toString());
+      console.log(`🤖 [Bot Simulator] @${postingBot?.username} posted new tweet: "${newTweet.content.slice(0, 50)}..."`);
+    }
+  } catch (err) {
+    console.error("❌ [Bot Simulator] Error generating bot tweet:", err);
+  }
+};
+
+export const startBotSimulator = (intervalMs = 60000) => {
+  console.log(`🚀 [Bot Simulator] Service initialized. Running actions/posts every ${intervalMs / 1000}s.`);
   
   // Seed first, then start intervals
   seedBotTweets().then(() => {
-    // Run once immediately on start after 5 seconds
-    setTimeout(runBotAction, 5000);
+    // Run bot tweet generation loop (runs every intervalMs)
+    setTimeout(runBotPost, 5000);
+    setInterval(runBotPost, intervalMs);
+
+    // Run bot interaction (like/retweet) loop
+    setTimeout(runBotAction, 10000);
     setInterval(runBotAction, intervalMs);
   });
 };
