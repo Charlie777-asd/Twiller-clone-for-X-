@@ -508,7 +508,24 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
               </div>
 
               {errors.general && (
-                <div className="mb-4 p-3 bg-[#f4212e]/10 border border-[#f4212e]/30 rounded-xl text-[#f4212e] text-sm">{errors.general}</div>
+                <div className="mb-4 p-3 bg-[#f4212e]/10 border border-[#f4212e]/30 rounded-xl text-[#f4212e] text-sm">
+                  <p>{errors.general}</p>
+                  {(errors.general.toLowerCase().includes("twilio") || errors.general.toLowerCase().includes("sandbox") || errors.general.toLowerCase().includes("whatsapp")) && (
+                    <div className="mt-2 p-2 bg-[#25D366]/10 rounded-lg border border-[#25D366]/20">
+                      <p className="text-[#8b98a5] text-xs leading-relaxed">
+                        To receive verification OTPs on your mobile device, please make sure you join our Twilio sandbox.
+                      </p>
+                      <a
+                        href="https://wa.me/14155238886?text=join%20bone-couple"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#25D366] text-xs font-bold underline mt-1 block"
+                      >
+                        Tap here to join Twilio Sandbox →
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
