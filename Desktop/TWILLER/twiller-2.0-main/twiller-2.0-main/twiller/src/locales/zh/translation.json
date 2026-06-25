@@ -542,5 +542,8 @@
   "Date": "日期",
   "No transactions found.": "未找到交易记录。",
   "Log out other sessions": "退出其他设备的登录",
-  "No active sessions found": "未找到活动会话。"
+  "No active sessions found": "未找到活动会话。",
+  "highlights_tab": "精彩瞬间",
+  "articles_tab": "文章",
+  "sessions_tab": "会话"
 }

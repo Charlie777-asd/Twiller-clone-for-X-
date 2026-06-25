@@ -221,20 +221,20 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       {/* ── Mobile Sticky Top Header ─────────────────────────────── */}
-      <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-14 flex items-center justify-between px-4 md:hidden flex-shrink-0 w-full">
+      <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden flex-shrink-0 w-full">
         <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-12 w-12">
             <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
-            <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-sm">
+            <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-base">
               {user.displayName?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </button>
-        <span className="font-extrabold text-[17px] text-[#e7e9ea] tracking-tight">
+        <span className="font-extrabold text-[20px] text-[#e7e9ea] tracking-tight">
           {t(currentPage === "userProfile" ? "profile" : currentPage.toLowerCase())}
         </span>
         <button onClick={() => setCurrentPage("settings")} className="text-[#e7e9ea] hover:text-white transition-colors">
-          <Settings className="h-5 w-5" />
+          <Settings className="h-6 w-6" />
         </button>
       </header>
 

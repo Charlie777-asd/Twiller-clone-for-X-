@@ -75,10 +75,10 @@ export default function UserProfilePage({ userId, onBack }: { userId: string; on
   return (
     <div className="min-h-screen bg-black text-[#e7e9ea] pb-20 sm:pb-0">
       {/* Header */}
-      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+      <div className="sticky top-16 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="flex items-center px-4 py-2 gap-6">
           <button onClick={onBack} className="p-2 rounded-full hover:bg-white/10 transition duration-200">
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
             <h2 className="text-xl font-bold flex items-center gap-1">

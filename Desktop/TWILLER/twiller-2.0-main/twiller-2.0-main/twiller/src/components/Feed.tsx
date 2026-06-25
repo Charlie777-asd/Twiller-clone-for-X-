@@ -106,19 +106,19 @@ const Feed = () => {
   return (
     <div className="min-h-screen relative">
       {/* Sticky header */}
-      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
+      <div className="sticky top-16 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
         <div className="px-4 pt-3 pb-0 hidden md:block">
           <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("home")}</h1>
         </div>
         <div className="flex">
           {[
-            { id: "foryou", label: t("for_you") || "For you" },
+            { id: "foryou", label: t("For you") || "For you" },
             { id: "following", label: t("following") },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-4 text-[15px] font-semibold transition-colors relative hover:bg-white/5 ${
+              className={`flex-1 py-4 text-[16px] font-extrabold transition-colors relative hover:bg-white/5 ${
                 activeTab === tab.id ? "text-[#e7e9ea]" : "text-[#71767b] hover:text-[#e7e9ea]"
               }`}
             >

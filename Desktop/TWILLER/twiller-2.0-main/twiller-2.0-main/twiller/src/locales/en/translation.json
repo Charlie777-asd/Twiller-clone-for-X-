@@ -542,5 +542,8 @@
   "Date": "Date",
   "No transactions found.": "No transactions found.",
   "Log out other sessions": "Log out other sessions",
-  "No active sessions found": "No active sessions found."
+  "No active sessions found": "No active sessions found.",
+  "highlights_tab": "Highlights",
+  "articles_tab": "Articles",
+  "sessions_tab": "Sessions"
 }

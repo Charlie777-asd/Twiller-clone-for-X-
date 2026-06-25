@@ -542,5 +542,8 @@
   "Date": "Data",
   "No transactions found.": "Nenhuma transação encontrada.",
   "Log out other sessions": "Encerrar outras sessões",
-  "No active sessions found": "Nenhuma sessão ativa encontrada."
+  "No active sessions found": "Nenhuma sessão ativa encontrada.",
+  "highlights_tab": "Destaques",
+  "articles_tab": "Artigos",
+  "sessions_tab": "Sessões"
 }

@@ -538,6 +538,9 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       tls: {
         rejectUnauthorized: false, // Fix: bypass self-signed certificate chain error
       },
+      lookup: (hostname, options, callback) => {
+        dns.lookup(hostname, { ...options, family: 4 }, callback);
+      },
     });
     console.log(`✅ Nodemailer Gmail configured for: ${process.env.EMAIL_USER}`);
   } catch (err) {

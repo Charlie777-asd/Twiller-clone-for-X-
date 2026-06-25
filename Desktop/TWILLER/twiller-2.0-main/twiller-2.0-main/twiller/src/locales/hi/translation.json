@@ -542,5 +542,8 @@
   "Date": "तारीख",
   "No transactions found.": "कोई लेनदेन नहीं मिला।",
   "Log out other sessions": "अन्य सत्रों से लॉग आउट करें",
-  "No active sessions found": "कोई सक्रिय सत्र नहीं मिला।"
+  "No active sessions found": "कोई सक्रिय सत्र नहीं मिला।",
+  "highlights_tab": "हाइलाइट्स",
+  "articles_tab": "लेख",
+  "sessions_tab": "सत्र"
 }

@@ -542,5 +542,8 @@
   "Date": "Fecha",
   "No transactions found.": "No se encontraron transacciones.",
   "Log out other sessions": "Cerrar sesión en otros dispositivos",
-  "No active sessions found": "No se encontraron sesiones activas."
+  "No active sessions found": "No se encontraron sesiones activas.",
+  "highlights_tab": "Destacados",
+  "articles_tab": "Artículos",
+  "sessions_tab": "Sesiones"
 }

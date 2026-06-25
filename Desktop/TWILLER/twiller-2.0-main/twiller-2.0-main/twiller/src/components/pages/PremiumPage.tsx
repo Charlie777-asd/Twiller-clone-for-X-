@@ -613,7 +613,7 @@ export default function PremiumPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+      <div className="sticky top-16 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="flex items-center justify-between px-4 py-3">
           <h1 className="hidden md:flex text-xl font-extrabold text-[#e7e9ea] items-center gap-2">
             <Sparkles className="h-5 w-5 text-[#ffd400]" />

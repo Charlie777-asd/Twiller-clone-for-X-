@@ -258,9 +258,9 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       {/* ── Sticky Header ──────────────────────────────────────────────── */}
-      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 py-3 flex items-center space-x-6">
+      <div className="sticky top-16 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 py-3 flex items-center space-x-6">
         <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
-          <ArrowLeft className="h-5 w-5 text-[#e7e9ea]" />
+          <ArrowLeft className="h-6 w-6 text-[#e7e9ea]" />
         </button>
         <div>
           <h1 className="text-xl font-bold text-[#e7e9ea] leading-tight">
@@ -450,13 +450,13 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Profile Tabs ───────────────────────────────────────────────── */}
-      <div className="border-b border-[#2f3336] bg-black sticky top-[109px] md:top-[53px] z-10">
-        <div className="flex overflow-x-auto scrollbar-none w-full">
+      <div className="border-b border-[#2f3336] bg-black sticky top-[122px] md:top-[53px] z-10">
+        <div className="flex overflow-x-auto scrollbar-none w-full scroll-smooth">
           {profileTabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`flex-1 min-w-[70px] sm:min-w-[80px] py-3 sm:py-4 px-2 sm:px-4 text-[13px] sm:text-[15px] font-extrabold relative hover:bg-white/5 transition-all duration-200 whitespace-nowrap ${
+              className={`flex-1 md:flex-initial shrink-0 py-3.5 sm:py-4 px-4 sm:px-6 text-[14px] sm:text-[15px] font-extrabold relative hover:bg-white/5 transition-all duration-200 whitespace-nowrap ${
                 activeTab === tab.value ? "text-[#e7e9ea]" : "text-[#71767b] hover:text-[#e7e9ea]"
               }`}
             >

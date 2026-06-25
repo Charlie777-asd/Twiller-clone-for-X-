@@ -345,7 +345,7 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen pb-10">
       {/* Sticky Search Header */}
-      <div className="sticky top-14 md:top-0 bg-black/90 backdrop-blur-md z-10 px-4 pt-3 pb-0 border-b border-[#2f3336]">
+      <div className="sticky top-16 md:top-0 bg-black/90 backdrop-blur-md z-10 px-4 pt-3 pb-0 border-b border-[#2f3336]">
         <div className="relative mb-3">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71767b] h-[18px] w-[18px] pointer-events-none" />
           <input
