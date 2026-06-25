@@ -258,7 +258,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       {/* ── Sticky Header ──────────────────────────────────────────────── */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 py-3 flex items-center space-x-6">
+      <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 h-[53px] flex items-center space-x-6">
         <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
           <ArrowLeft className="h-6 w-6 text-[#e7e9ea]" />
         </button>

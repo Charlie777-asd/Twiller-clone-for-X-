@@ -36,8 +36,8 @@ dotenv.config();
 // --- Pre-emptive Environment Variable Fallbacks & Warnings ---
 if (!process.env.FRONTEND_URL)   console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
 if (!process.env.TWILIO_ACCOUNT_SID) console.warn("⚠️  TWILIO_ACCOUNT_SID is missing. SMS/WhatsApp OTP will be disabled or mocked.");
-if (!(process.env.EMAIL_PASSWORD || process.env.email_password)) console.warn("⚠️  EMAIL_PASSWORD is missing. Email delivery will be in mock/console mode.");
-if (!(process.env.EMAIL || process.env.email || process.env.GMAIL_USER)) console.warn("⚠️  EMAIL is missing. Emails will show a fallback sender address.");
+if (!(process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD)) console.warn("⚠️  EMAIL_PASSWORD or GMAIL_APP_PASSWORD is missing. Email delivery might fail.");
+if (!(process.env.EMAIL_USER || process.env.GMAIL_USER)) console.warn("⚠️  EMAIL_USER or GMAIL_USER is missing. Email delivery might fail.");
 
 // ── Translation Helper (MyMemory Translation API & Offline Fallback) ─────────
 const LOCAL_TRANSLATIONS = {
@@ -606,50 +606,40 @@ const buildOtpHtml = (otp) => `
  * @returns {Promise<{ messageId: string } | { mockId: string }>}
  */
 const sendEmail = async ({ to, subject, html, text, otp }) => {
-  // ── LIVE PATH ────────────────────────────────────────────────
-  const userPassword = process.env.EMAIL_PASSWORD || process.env.email_password || process.env.GMAIL_PASSWORD;
-  const userEmail = process.env.EMAIL || process.env.email || process.env.GMAIL_USER;
-
-  if (userPassword && userEmail) {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: userEmail,
-        pass: userPassword,
-      },
-    });
-
-    const htmlBody = html || (otp ? buildOtpHtml(otp) : undefined);
-    const textBody = text || (otp ? `Your Twiller verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.` : undefined);
-
-    const mailOptions = {
-      from: `"Twiller Auth" <${userEmail}>`,
-      to,
-      subject,
-      text: textBody,
-      html: htmlBody,
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`✉️  Nodemailer → delivered to ${to} [messageId: ${info.messageId}]`);
-      return { messageId: info.messageId };
-    } catch (err) {
-      console.error(`❌ Nodemailer sendEmail exception for ${to}:`, err.message);
-      throw err;
+  const transporter = nodemailer.createTransport({
+    pool: true,
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true for port 465
+    auth: {
+      user: process.env.EMAIL_USER || process.env.GMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false // Prevents local/host certificate handshake blockages
     }
-  }
+  });
 
-  // ── MOCK / DEV FALLBACK ──────────────────────────────────────────
-  // Reached only when EMAIL_PASSWORD is not set (local dev / CI without .env).
-  console.log(`\n╔════════════════════════════════════════╗`);
-  console.log(`  📧 EMAIL (MOCK — EMAIL_PASSWORD not set)`);
-  console.log(`  To:      ${to}`);
-  console.log(`  Subject: ${subject}`);
-  if (otp) console.log(`  OTP:     ${otp}`);
-  else      console.log(`  Body:    ${text || "(html only)"}`);
-  console.log(`╚════════════════════════════════════════╝\n`);
-  return { mockId: "mock-nodemailer-id" };
+  const fromEmail = process.env.EMAIL_USER || process.env.GMAIL_USER;
+  const htmlBody = html || (otp ? buildOtpHtml(otp) : undefined);
+  const textBody = text || (otp ? `Your Twiller verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.` : undefined);
+
+  const mailOptions = {
+    from: `"Twiller Auth" <${fromEmail}>`,
+    to,
+    subject,
+    text: textBody,
+    html: htmlBody,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✉️  Nodemailer → delivered to ${to} [messageId: ${info.messageId}]`);
+    return { messageId: info.messageId };
+  } catch (err) {
+    console.error(`❌ Nodemailer sendEmail exception for ${to}:`, err.message);
+    throw err;
+  }
 };
 
 app.set("sendEmail", sendEmail);
