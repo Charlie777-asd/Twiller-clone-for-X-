@@ -220,8 +220,8 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         <Sidebar currentPage={currentPage as Page} onNavigate={setCurrentPage} />
       </div>
 
-      {/* ── Mobile Sticky Top Header ─────────────────────────────── */}
-      <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden flex-shrink-0 w-full">
+      {/* ── Mobile Fixed Top Header ─────────────────────────────── */}
+      <header className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden w-full">
         <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
           <Avatar className="h-12 w-12">
             <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
@@ -241,7 +241,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       {/* ── Main content ─────────────────────────────────────────── */}
       <main
         ref={mainRef}
-        className={`flex-1 min-h-screen md:h-screen border-x border-[#2f3336] overflow-x-hidden overflow-y-visible md:overflow-y-auto ${
+        className={`flex-1 min-h-screen md:h-screen pt-16 md:pt-0 border-x border-[#2f3336] overflow-x-hidden overflow-y-visible md:overflow-y-auto ${
           isFullWidth ? "max-w-[900px]" : "max-w-[600px]"
         }`}
       >

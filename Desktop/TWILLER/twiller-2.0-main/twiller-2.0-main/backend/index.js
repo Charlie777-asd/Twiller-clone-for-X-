@@ -541,6 +541,9 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       lookup: (hostname, options, callback) => {
         dns.lookup(hostname, { ...options, family: 4 }, callback);
       },
+      connectionTimeout: 3000, // 3 seconds timeout for fast fallback
+      greetingTimeout: 3000,
+      socketTimeout: 3000,
     });
     console.log(`✅ Nodemailer Gmail configured for: ${process.env.EMAIL_USER}`);
   } catch (err) {
