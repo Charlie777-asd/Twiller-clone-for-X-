@@ -12,6 +12,19 @@ const nextConfig = {
     BACKEND_URL: process.env.BACKEND_URL,
   },
   outputFileTracingRoot: path.join(__dirname),
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

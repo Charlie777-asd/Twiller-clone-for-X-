@@ -910,7 +910,11 @@ app.get("/loggedinuser", async (req, res) => {
       return res.status(403).send({ error: "Account is deactivated." });
     }
 
-    const sessionIdHeader = req.headers["x-session-id"];
+    let sessionIdHeader = req.headers["x-session-id"];
+    if (!sessionIdHeader && req.headers["authorization"]?.startsWith("Bearer ")) {
+      sessionIdHeader = req.headers["authorization"].split(" ")[1];
+    }
+
     if (sessionIdHeader) {
       if (!user.sessions) user.sessions = [];
       const activeSession = user.sessions.find(s => s.sessionId === sessionIdHeader && s.isActive);

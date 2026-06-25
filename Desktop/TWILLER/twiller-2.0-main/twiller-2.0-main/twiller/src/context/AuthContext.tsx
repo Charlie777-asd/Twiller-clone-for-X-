@@ -129,18 +129,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser?.email) {
         try {
-          const res = await axiosInstance.get("/loggedinuser", { params: { email: fbUser.email } });
-          if (res.data?._id) {
-            if (res.data.isActive === false) {
+          let ud = null;
+          try {
+            const res = await axiosInstance.get("/loggedinuser", { params: { email: fbUser.email } });
+            if (res.data?._id) {
+              ud = res.data;
+            }
+          } catch (err: any) {
+            // A 404 error from loggedinuser indicates the user is not in the DB yet, which is expected for new sign-ups.
+            if (err.response?.status !== 404) {
+              throw err;
+            }
+          }
+
+          if (ud) {
+            if (ud.isActive === false) {
               setUser(null);
               localStorage.removeItem("twitter-user");
               localStorage.removeItem("twitter-session-id");
               await signOut(auth);
             } else {
-              setUser(res.data);
-              localStorage.setItem("twitter-user", JSON.stringify(res.data));
-              if (res.data.sessionId) {
-                localStorage.setItem("twitter-session-id", res.data.sessionId);
+              setUser(ud);
+              localStorage.setItem("twitter-user", JSON.stringify(ud));
+              if (ud.sessionId) {
+                localStorage.setItem("twitter-session-id", ud.sessionId);
               }
             }
           } else {
@@ -162,7 +174,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               localStorage.removeItem("twitter-session-id");
             }
           }
-        } catch {
+        } catch (err) {
+          console.error("Auth state observer error:", err);
           setUser(null);
           localStorage.removeItem("twitter-user");
           localStorage.removeItem("twitter-session-id");
@@ -383,8 +396,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await signInWithPopup(auth, provider);
       const fbUser = result.user;
       if (!fbUser?.email) throw new Error("No email in Google account");
-      const res = await axiosInstance.get("/loggedinuser", { params: { email: fbUser.email } });
-      let ud = res.data?._id ? res.data : null;
+      
+      let ud = null;
+      try {
+        const res = await axiosInstance.get("/loggedinuser", { params: { email: fbUser.email } });
+        if (res.data?._id) {
+          ud = res.data;
+        }
+      } catch (err: any) {
+        // A 404 indicates the user is not registered in the DB yet, proceed to registration
+        if (err.response?.status !== 404) {
+          throw err;
+        }
+      }
+
       if (!ud) {
         const reg = await axiosInstance.post("/register", {
           username: fbUser.email.split("@")[0],
@@ -394,6 +419,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         ud = reg.data;
       }
+      
       if (ud?._id) {
         if (ud.isActive === false) throw new Error("Account is deactivated.");
         setUser(ud);
@@ -403,6 +429,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else throw new Error("Login failed: no user data");
     } catch (err: unknown) {
+      console.error("Google sign in exception:", err);
       const code = (err as { code?: string })?.code ?? "";
       if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") {
         throw new Error(`Google Sign-In failed: ${fbErr(code) || getErrorMessage(err)}`);
