@@ -65,11 +65,11 @@ export default function BookmarksPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
+      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
-            <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Bookmarks")}</h1>
-            <p className="text-[#71767b] text-sm">@{user?.username}</p>
+            <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Bookmarks")}</h1>
+            <p className="hidden md:block text-[#71767b] text-sm">@{user?.username}</p>
           </div>
           {bookmarks.length > 0 && (
             <DropdownMenu>

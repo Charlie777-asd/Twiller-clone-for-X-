@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/lib/axiosInstance";
 import LoadingSpinner from "../loading-spinner";
 import { useLanguage } from "@/context/LanguageContext";
+import { mediaUrl } from "@/lib/backendUrl";
 
 type NotifTab = "all" | "verified" | "mentions";
 
@@ -130,9 +131,9 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Notifications")}</h1>
+          <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Notifications")}</h1>
           <div className="flex items-center gap-3">
             {unreadCount > 0 && (
               <span className="bg-[#1d9bf0] text-white text-xs font-bold rounded-full px-2.5 py-0.5 animate-pulse">
@@ -217,7 +218,7 @@ export default function NotificationsPage() {
                     {notif.sender && (
                       <div className="flex items-center gap-2 mb-1.5">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={notif.sender.avatar} />
+                          <AvatarImage src={mediaUrl(notif.sender.avatar)} />
                           <AvatarFallback className="bg-[#1d9bf0] text-white text-xs font-bold">
                             {notif.sender.displayName?.[0]?.toUpperCase()}
                           </AvatarFallback>

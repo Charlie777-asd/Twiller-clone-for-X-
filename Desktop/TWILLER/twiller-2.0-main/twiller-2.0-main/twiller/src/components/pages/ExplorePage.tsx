@@ -10,6 +10,7 @@ import LoadingSpinner from "../loading-spinner";
 import type { Tweet } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { mediaUrl } from "@/lib/backendUrl";
 
 const categories = ["For you", "Trending", "News", "Sports", "Entertainment", "Technology"];
 
@@ -344,7 +345,7 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen pb-10">
       {/* Sticky Search Header */}
-      <div className="sticky top-0 bg-black/90 backdrop-blur-md z-10 px-4 pt-3 pb-0 border-b border-[#2f3336]">
+      <div className="sticky top-14 md:top-0 bg-black/90 backdrop-blur-md z-10 px-4 pt-3 pb-0 border-b border-[#2f3336]">
         <div className="relative mb-3">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71767b] h-[18px] w-[18px] pointer-events-none" />
           <input
@@ -433,7 +434,7 @@ export default function ExplorePage() {
                   >
                     <div className="flex items-center space-x-3 min-w-0 flex-1 mr-3">
                       <Avatar className="h-11 w-11 flex-shrink-0">
-                        <AvatarImage src={p.avatar} className="object-cover" />
+                        <AvatarImage src={mediaUrl(p.avatar)} className="object-cover" />
                         <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">{p.displayName?.[0]?.toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
@@ -552,7 +553,7 @@ export default function ExplorePage() {
                     >
                       <div className="flex items-center space-x-3 min-w-0 flex-1 mr-3">
                         <Avatar className="h-10 w-10 flex-shrink-0">
-                          <AvatarImage src={p.avatar} className="object-cover" />
+                          <AvatarImage src={mediaUrl(p.avatar)} className="object-cover" />
                           <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">{p.displayName?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">

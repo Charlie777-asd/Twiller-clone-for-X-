@@ -106,8 +106,8 @@ const Feed = () => {
   return (
     <div className="min-h-screen relative">
       {/* Sticky header */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
-        <div className="px-4 pt-3 pb-0">
+      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
+        <div className="px-4 pt-3 pb-0 hidden md:block">
           <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("home")}</h1>
         </div>
         <div className="flex">

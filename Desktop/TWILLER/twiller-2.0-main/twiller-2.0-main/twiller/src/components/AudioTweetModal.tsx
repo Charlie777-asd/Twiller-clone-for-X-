@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import axiosInstance from "@/lib/axiosInstance";
+import { mediaUrl } from "@/lib/backendUrl";
 type OtpChannel = "email" | "mobile";
 
 interface AudioTweetModalProps {
@@ -520,7 +521,7 @@ export default function AudioTweetModal({ isOpen, onClose, onTweetPosted }: Audi
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarImage src={user?.avatar} />
+                    <AvatarImage src={mediaUrl(user?.avatar)} />
                     <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
                       {user?.displayName?.[0]?.toUpperCase()}
                     </AvatarFallback>

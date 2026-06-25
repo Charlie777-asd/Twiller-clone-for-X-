@@ -22,6 +22,7 @@ import LoadingSpinner from "./loading-spinner";
 import AudioTweetModal from "./AudioTweetModal";
 import type { Tweet } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
+import { mediaUrl } from "@/lib/backendUrl";
 
 const EMOJI_LIST = ["😀","😂","🥹","😍","🤔","😎","🥳","😭","🔥","💯","❤️","🎉","👍","🙏","😊","✨","💀","🤣","👀","💪","🎶","🌟","🤯","💬","🫶","😤","😢","🤩","🥰","🫠","😱","🙈","💫","🌈","🎯","🚀","⚡","🌍","🎁","🏆"];
 const POLL_DURATIONS = ["1 day", "3 days", "7 days"];
@@ -352,7 +353,7 @@ export default function TweetComposer({ onTweetPosted }: { onTweetPosted: (tweet
         <div className="flex space-x-3">
           {/* Avatar */}
           <Avatar className="h-11 w-11 flex-shrink-0 mt-0.5">
-            <AvatarImage src={user.avatar} alt={user.displayName} />
+            <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
             <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
               {user.displayName?.[0]?.toUpperCase()}
             </AvatarFallback>

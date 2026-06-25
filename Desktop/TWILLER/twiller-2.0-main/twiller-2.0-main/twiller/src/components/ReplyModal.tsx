@@ -126,7 +126,7 @@ export default function ReplyModal({ tweet, isOpen, onClose, onReplyAdded }: Rep
             <div className="flex space-x-3">
               <div className="flex flex-col items-center">
                 <Avatar className="h-10 w-10 flex-shrink-0">
-                  <AvatarImage src={tweet.author?.avatar} />
+                  <AvatarImage src={mediaUrl(tweet.author?.avatar)} />
                   <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
                     {tweet.author?.displayName?.[0]?.toUpperCase()}
                   </AvatarFallback>
@@ -233,7 +233,7 @@ export default function ReplyModal({ tweet, isOpen, onClose, onReplyAdded }: Rep
               {replies.map(r => (
                 <div key={r._id} className="flex space-x-3 px-4 py-3 border-b border-[#2f3336] hover:bg-white/[0.02] transition-colors">
                   <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarImage src={r.author?.avatar} />
+                    <AvatarImage src={mediaUrl(r.author?.avatar)} />
                     <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
                       {r.author?.displayName?.[0]?.toUpperCase()}
                     </AvatarFallback>

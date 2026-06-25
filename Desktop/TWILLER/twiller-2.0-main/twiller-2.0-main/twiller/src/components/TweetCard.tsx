@@ -231,7 +231,7 @@ export default function TweetCard({ tweet, onDeleted }: TweetCardProps) {
               className="h-10 w-10 hover:opacity-90 transition-opacity cursor-pointer"
               onClick={handleUserClick}
             >
-              <AvatarImage src={tweetState.author.avatar} alt={tweetState.author.displayName} />
+              <AvatarImage src={mediaUrl(tweetState.author.avatar)} alt={tweetState.author.displayName} />
               <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-sm">
                 {tweetState.author.displayName?.[0]?.toUpperCase() ?? "?"}
               </AvatarFallback>

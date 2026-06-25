@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Star, X, Heart, UserPlus, Repeat2, AtSign, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { mediaUrl } from "@/lib/backendUrl";
 
 interface ToastItem {
   id: string;
@@ -60,7 +61,7 @@ function triggerNativeNotification(notification: any) {
   try {
     const nativeNotif = new Notification(title, {
       body,
-      icon: notification.sender?.avatar || "/favicon.ico",
+      icon: mediaUrl(notification.sender?.avatar) || "/favicon.ico",
       badge: "/favicon.ico",
       tag: `twiller-notification-${notification._id}`,
     });
@@ -211,7 +212,7 @@ export default function NotificationToast() {
                 <div className="flex items-start gap-3">
                   {toast.sender && (
                     <Avatar className="h-9 w-9 flex-shrink-0">
-                      <AvatarImage src={toast.sender.avatar} alt={toast.sender.displayName} />
+                      <AvatarImage src={mediaUrl(toast.sender.avatar)} alt={toast.sender.displayName} />
                       <AvatarFallback className="bg-[#1d9bf0] text-white text-sm font-bold">
                         {toast.sender.displayName?.[0]?.toUpperCase() ?? "?"}
                       </AvatarFallback>

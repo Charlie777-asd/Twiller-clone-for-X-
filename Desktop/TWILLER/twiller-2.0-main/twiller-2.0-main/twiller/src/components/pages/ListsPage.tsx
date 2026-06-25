@@ -257,7 +257,7 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
     return (
       <div className="min-h-screen relative bg-black text-white pb-12 animate-page-fade">
         {/* Header */}
-        <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336] flex items-center px-4 py-2 gap-6">
+        <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336] flex items-center px-4 py-2 gap-6">
           <button 
             onClick={() => setSelectedList(null)} 
             className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
@@ -455,9 +455,9 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
   return (
     <div className="min-h-screen bg-black text-white animate-page-fade">
       {/* Header */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Lists")}</h1>
+          <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Lists")}</h1>
           <button
             onClick={() => {
               setNewListName("");

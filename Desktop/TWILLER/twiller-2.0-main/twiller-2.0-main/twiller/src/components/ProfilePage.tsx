@@ -258,7 +258,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       {/* ── Sticky Header ──────────────────────────────────────────────── */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 py-3 flex items-center space-x-6">
+      <div className="sticky top-14 md:top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 py-3 flex items-center space-x-6">
         <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
           <ArrowLeft className="h-5 w-5 text-[#e7e9ea]" />
         </button>
@@ -375,7 +375,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="flex items-center space-x-5 text-[15px]">
+        <div className="flex items-center space-x-5 text-[15px] mb-4">
           <button onClick={() => setFollowModalType("following")} className="hover:underline">
             <span className="text-[#e7e9ea] font-bold">{user.following?.length || 0}</span>
             <span className="text-[#71767b] ml-1">{t("following")}</span>
@@ -385,13 +385,72 @@ export default function ProfilePage() {
             <span className="text-[#71767b] ml-1">{t("followers") || "Followers"}</span>
           </button>
         </div>
+
+        {/* Interests Card relocated below following and followers */}
+        <div className="mt-4 bg-[#16181c]/40 border border-[#2f3336] rounded-2xl p-4 md:p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-1 border-b border-[#2f3336] pb-3">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#1d9bf0] fill-none stroke-current" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581a2.25 2.25 0 003.182 0l4.318-4.318a2.25 2.25 0 000-3.182L11.16 3.659A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+            <h3 className="text-[#e7e9ea] font-extrabold text-lg">{t("your_interests") || "Your Interests"}</h3>
+          </div>
+          <p className="text-[#71767b] text-xs leading-relaxed">
+            {t("add_topics_desc") || "Add topics you're interested in to get personalized notifications when someone posts about them."}
+          </p>
+          
+          <div className="flex flex-wrap gap-2 mb-1">
+            {interests.map((interest) => (
+              <span key={interest} className="inline-flex items-center space-x-1 bg-[#1d9bf0]/10 text-[#1d9bf0] px-3 py-1 rounded-full text-xs font-semibold border border-[#1d9bf0]/20 group">
+                <span>{interest}</span>
+                <button
+                  onClick={() => handleRemoveInterest(interest)}
+                  className="hover:text-white transition-colors ml-1 opacity-70 hover:opacity-100 font-bold"
+                  aria-label={`Remove ${interest}`}
+                >×</button>
+              </span>
+            ))}
+            {interests.length === 0 && (
+              <span className="text-[#71767b] text-xs italic">{t("no_interests") || "No interests added yet. Add some below!"}</span>
+            )}
+          </div>
+
+          <form onSubmit={handleAddInterest} className="flex items-center space-x-2">
+            <input
+              type="text"
+              placeholder={t("interest_placeholder") || "e.g. Technology, Gaming, Science…"}
+              value={interestInput}
+              onChange={(e) => setInterestInput(e.target.value)}
+              className="flex-1 bg-[#16181c] border border-[#536471] focus:border-[#1d9bf0] rounded-xl px-4 py-2 text-xs text-[#e7e9ea] placeholder-[#71767b] outline-none transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={savingInterest || !interestInput.trim()}
+              className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-extrabold text-xs px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
+            >
+              {savingInterest ? (t("adding") || "Adding…") : (t("add") || "Add")}
+            </button>
+          </form>
+
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2f3336]">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-full bg-[#1d9bf0]/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#1d9bf0] fill-none stroke-current" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+              </div>
+              <div>
+                <p className="text-[#e7e9ea] font-extrabold text-sm">{t("browser_keyword_notifications") || "Browser Keyword Notifications"}</p>
+                <p className="text-[#71767b] text-[11px] leading-tight mt-0.5">{t("receive_os_popups_desc") || "Receive OS-level popups for \"cricket\", \"science\" or interest topics"}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleToggleNotifications}
+              className={`relative w-11 h-5.5 rounded-full transition-colors flex items-center ${notificationsEnabled ? "bg-[#1d9bf0]" : "bg-[#536471]"}`}
+            >
+              <span className={`absolute w-3.5 h-3.5 bg-white rounded-full transition-all shadow-sm ${notificationsEnabled ? "left-6" : "left-1"}`} />
+            </button>
+          </div>
+        </div>
       </div>
 
-
-
-
       {/* ── Profile Tabs ───────────────────────────────────────────────── */}
-      <div className="border-b border-[#2f3336] bg-black sticky top-[53px] z-10">
+      <div className="border-b border-[#2f3336] bg-black sticky top-[109px] md:top-[53px] z-10">
         <div className="flex overflow-x-auto scrollbar-none w-full">
           {profileTabs.map((tab) => (
             <button
@@ -472,67 +531,7 @@ export default function ProfilePage() {
 
       {activeTab === "sessions" && (
         <div className="p-4 space-y-6 max-w-full">
-          {/* Interests & Notifications Preferences */}
-          <div className="bg-[#000000] border border-[#2f3336] rounded-2xl p-4 md:p-6 space-y-4">
-            <div className="flex items-center gap-2 mb-1 border-b border-[#2f3336] pb-3">
-              <Tag className="h-5 w-5 text-[#1d9bf0]" />
-              <h3 className="text-[#e7e9ea] font-extrabold text-lg">{t("your_interests") || "Your Interests"}</h3>
-            </div>
-            <p className="text-[#71767b] text-xs leading-relaxed">
-              {t("add_topics_desc") || "Add topics you're interested in to get personalized notifications when someone posts about them."}
-            </p>
-            
-            <div className="flex flex-wrap gap-2 mb-1">
-              {interests.map((interest) => (
-                <span key={interest} className="inline-flex items-center space-x-1 bg-[#1d9bf0]/10 text-[#1d9bf0] px-3 py-1 rounded-full text-xs font-semibold border border-[#1d9bf0]/20 group">
-                  <span>{interest}</span>
-                  <button
-                    onClick={() => handleRemoveInterest(interest)}
-                    className="hover:text-white transition-colors ml-1 opacity-70 hover:opacity-100"
-                    aria-label={`Remove ${interest}`}
-                  >×</button>
-                </span>
-              ))}
-              {interests.length === 0 && (
-                <span className="text-[#71767b] text-xs italic">{t("no_interests") || "No interests added yet. Add some below!"}</span>
-              )}
-            </div>
-
-            <form onSubmit={handleAddInterest} className="flex items-center space-x-2">
-              <input
-                type="text"
-                placeholder={t("interest_placeholder") || "e.g. Technology, Gaming, Science…"}
-                value={interestInput}
-                onChange={(e) => setInterestInput(e.target.value)}
-                className="flex-1 bg-[#16181c] border border-[#536471] focus:border-[#1d9bf0] rounded-xl px-4 py-2 text-xs text-[#e7e9ea] placeholder-[#71767b] outline-none transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={savingInterest || !interestInput.trim()}
-                className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-extrabold text-xs px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
-              >
-                {savingInterest ? (t("adding") || "Adding…") : (t("add") || "Add")}
-              </button>
-            </form>
-
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2f3336]">
-              <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-full bg-[#1d9bf0]/10 flex items-center justify-center">
-                  <Bell className="h-4 w-4 text-[#1d9bf0]" />
-                </div>
-                <div>
-                  <p className="text-[#e7e9ea] font-extrabold text-sm">{t("browser_keyword_notifications") || "Browser Keyword Notifications"}</p>
-                  <p className="text-[#71767b] text-[11px] leading-tight mt-0.5">{t("receive_os_popups_desc") || "Receive OS-level popups for \"cricket\", \"science\" or interest topics"}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleToggleNotifications}
-                className={`relative w-11 h-5.5 rounded-full transition-colors flex items-center ${notificationsEnabled ? "bg-[#1d9bf0]" : "bg-[#536471]"}`}
-              >
-                <span className={`absolute w-3.5 h-3.5 bg-white rounded-full transition-all shadow-sm ${notificationsEnabled ? "left-6" : "left-1"}`} />
-              </button>
-            </div>
-          </div>
+          {/* Interests & Notifications relocated to profile header */}
 
           {/* Active Sessions Card */}
           <div className="bg-[#000000] border border-[#2f3336] rounded-2xl p-4 md:p-6 space-y-4">

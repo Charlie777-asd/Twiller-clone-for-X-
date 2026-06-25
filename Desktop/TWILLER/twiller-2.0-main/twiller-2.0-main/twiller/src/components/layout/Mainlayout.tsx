@@ -135,14 +135,17 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
 
     // 4. Font Size Scale
     const fontSize = user.displayPrefs?.fontSize ?? 3;
-    const fontSizes: Record<number, string> = {
-      1: "13px",
-      2: "14px",
-      3: "15px",
-      4: "16px",
-      5: "18px",
+    const fontSizes: Record<number, { mobile: string; desktop: string }> = {
+      1: { mobile: "11px", desktop: "13px" },
+      2: { mobile: "12px", desktop: "14px" },
+      3: { mobile: "13px", desktop: "15px" },
+      4: { mobile: "14px", desktop: "16px" },
+      5: { mobile: "15px", desktop: "18px" },
     };
-    document.documentElement.style.fontSize = fontSizes[fontSize] || "15px";
+    const sizes = fontSizes[fontSize] || fontSizes[3];
+    document.documentElement.style.setProperty("--user-font-size-mobile", sizes.mobile);
+    document.documentElement.style.setProperty("--user-font-size-desktop", sizes.desktop);
+    document.documentElement.style.fontSize = ""; // clear inline override to let CSS media queries apply
 
     // 5. Reduce Motion class toggling
     const reduceMotion = user.accessibilityPrefs?.reduceMotion ?? false;
@@ -220,9 +223,9 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       {/* ── Mobile Sticky Top Header ─────────────────────────────── */}
       <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-14 flex items-center justify-between px-4 md:hidden flex-shrink-0 w-full">
         <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-10 w-10">
             <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
-            <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-xs">
+            <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-sm">
               {user.displayName?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -238,7 +241,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       {/* ── Main content ─────────────────────────────────────────── */}
       <main
         ref={mainRef}
-        className={`flex-1 min-h-screen border-x border-[#2f3336] overflow-x-hidden overflow-y-auto ${
+        className={`flex-1 min-h-screen md:h-screen border-x border-[#2f3336] overflow-x-hidden overflow-y-visible md:overflow-y-auto ${
           isFullWidth ? "max-w-[900px]" : "max-w-[600px]"
         }`}
       >

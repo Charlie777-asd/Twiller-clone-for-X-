@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import axiosInstance from "@/lib/axiosInstance";
 import type { Tweet } from "@/lib/types";
+import { mediaUrl } from "@/lib/backendUrl";
 
 function VerifiedBadge() {
   return (
@@ -117,7 +118,7 @@ export default function RightSidebar() {
                 <div key={tweet._id} className="px-4 py-3.5 hover:bg-white/5 transition-colors cursor-pointer border-b border-[#2f3336] last:border-0">
                   <div className="flex items-center space-x-2 mb-1.5">
                     <Avatar className="h-5 w-5">
-                      <AvatarImage src={tweet.author?.avatar} />
+                      <AvatarImage src={mediaUrl(tweet.author?.avatar)} />
                       <AvatarFallback className="bg-[#1d9bf0] text-white text-[8px] font-bold">{tweet.author?.displayName?.[0]}</AvatarFallback>
                     </Avatar>
                     <span className="text-[#e7e9ea] text-xs font-bold hover:underline">{tweet.author?.displayName}</span>
@@ -202,7 +203,7 @@ export default function RightSidebar() {
                       className="h-10 w-10 flex-shrink-0 cursor-pointer"
                       onClick={() => window.dispatchEvent(new CustomEvent("twiller-view-user", { detail: person._id }))}
                     >
-                      <AvatarImage src={person.avatar} alt={person.displayName} />
+                      <AvatarImage src={mediaUrl(person.avatar)} alt={person.displayName} />
                       <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
                         {person.displayName?.[0]?.toUpperCase()}
                       </AvatarFallback>

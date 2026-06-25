@@ -17,6 +17,10 @@ export const buildBackendUrl = (path = "") => {
 /** Resolve avatar, cover, tweet media, and upload paths against the API base URL. */
 export const mediaUrl = (path) => {
   if (!path) return "";
+  const uploadMatch = path.match(/\/?uploads\/(.+)$/i);
+  if (uploadMatch) {
+    return buildBackendUrl(`/uploads/${uploadMatch[1]}`);
+  }
   return buildBackendUrl(path);
 };
 

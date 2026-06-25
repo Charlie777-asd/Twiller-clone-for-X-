@@ -5,6 +5,7 @@ import { X, Search } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useAuth } from "@/context/AuthContext";
+import { mediaUrl } from "@/lib/backendUrl";
 
 interface FollowUser {
   _id: string;
@@ -94,7 +95,7 @@ export default function FollowListModal({ userId, type, onClose }: FollowListMod
                 <div key={u._id} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors border-b border-[#2f3336] last:border-0 cursor-pointer">
                   <div className="flex items-center space-x-3 min-w-0 flex-1 mr-3">
                     <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={u.avatar} alt={u.displayName} />
+                      <AvatarImage src={mediaUrl(u.avatar)} alt={u.displayName} />
                       <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
                         {u.displayName?.[0]?.toUpperCase()}
                       </AvatarFallback>

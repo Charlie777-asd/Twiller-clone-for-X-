@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/lib/axiosInstance";
 import LoadingSpinner from "../loading-spinner";
 import { useLanguage } from "@/context/LanguageContext";
+import { mediaUrl } from "@/lib/backendUrl";
 
 const formatTime = (ts?: string) => {
   if (!ts) return "";
@@ -117,9 +118,9 @@ export default function MessagesPage() {
   });
 
   return (
-    <div className="flex h-screen min-w-0 overflow-hidden">
+    <div className="flex h-[calc(100dvh-7.5rem)] md:h-screen min-w-0 overflow-hidden">
       {/* ── Left: Conversation list ─────────────────────────────── */}
-      <div className={`${activeConv ? "hidden sm:flex" : "flex"} w-full sm:w-[88px] md:w-[350px] flex-shrink-0 border-r border-[#2f3336] flex-col`}>
+      <div className={`${activeConv ? "hidden md:flex" : "flex"} w-full md:w-[350px] flex-shrink-0 border-r border-[#2f3336] flex-col`}>
         <div className="sticky top-0 bg-black/90 backdrop-blur-md px-4 py-3 border-b border-[#2f3336] flex items-center justify-between">
           <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Messages")}</h1>
           <button
@@ -173,14 +174,13 @@ export default function MessagesPage() {
                 >
                   <div className="relative flex-shrink-0">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={other?.avatar} />
+                      <AvatarImage src={mediaUrl(other?.avatar)} />
                       <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">
                         {other?.displayName?.[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-[#00ba7c] border-2 border-black rounded-full" />
                   </div>
-                  <div className="hidden md:block flex-1 min-w-0">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-[#e7e9ea] font-bold text-[15px] truncate">{other?.displayName}</span>
                       <span className="text-[#71767b] text-xs flex-shrink-0 ml-2">·</span>
@@ -196,18 +196,18 @@ export default function MessagesPage() {
 
       {/* ── Right: Chat pane ───────────────────────────────────── */}
       {activeConv ? (
-        <div className={`${activeConv ? "flex" : "hidden sm:flex"} flex-1 flex-col min-w-0`}>
+        <div className={`${activeConv ? "flex" : "hidden md:flex"} flex-1 flex-col min-w-0`}>
           {/* Chat header */}
           <div className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-[#2f3336] px-4 py-3 flex items-center justify-between z-10">
             <div className="flex items-center space-x-3">
               <button
-                className="sm:hidden p-1.5 rounded-full hover:bg-white/10 text-[#e7e9ea] mr-1"
+                className="md:hidden p-1.5 rounded-full hover:bg-white/10 text-[#e7e9ea] mr-1"
                 onClick={() => setActiveConv(null)}
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <Avatar className="h-9 w-9">
-                <AvatarImage src={getOtherUser(activeConv)?.avatar} />
+                <AvatarImage src={mediaUrl(getOtherUser(activeConv)?.avatar)} />
                 <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-sm">
                   {getOtherUser(activeConv)?.displayName?.[0]?.toUpperCase()}
                 </AvatarFallback>
@@ -234,7 +234,7 @@ export default function MessagesPage() {
             ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-16 text-center">
                 <Avatar className="h-20 w-20 mb-4">
-                  <AvatarImage src={getOtherUser(activeConv)?.avatar} />
+                  <AvatarImage src={mediaUrl(getOtherUser(activeConv)?.avatar)} />
                   <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-2xl">
                     {getOtherUser(activeConv)?.displayName?.[0]?.toUpperCase()}
                   </AvatarFallback>
@@ -293,7 +293,7 @@ export default function MessagesPage() {
           </div>
         </div>
       ) : (
-        <div className="hidden sm:flex flex-1 items-center justify-center">
+        <div className="hidden md:flex flex-1 items-center justify-center">
           <div className="text-center">
             <div className="w-24 h-24 rounded-full bg-[#1d9bf0]/10 flex items-center justify-center mb-6 mx-auto">
               <Send className="h-12 w-12 text-[#1d9bf0]" />
@@ -346,7 +346,7 @@ export default function MessagesPage() {
                     className="flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <Avatar className="h-11 w-11">
-                      <AvatarImage src={u.avatar} />
+                      <AvatarImage src={mediaUrl(u.avatar)} />
                       <AvatarFallback className="bg-[#1d9bf0] text-white font-bold">{u.displayName?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>
