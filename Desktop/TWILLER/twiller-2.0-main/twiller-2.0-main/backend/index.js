@@ -13,7 +13,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { parseFile } from "music-metadata";
-import { Resend } from "resend";
+import { google } from "googleapis";
 import Comment from "./models/comment.js";
 import Conversation from "./models/conversation.js";
 import Message from "./models/message.js";
@@ -36,8 +36,10 @@ dotenv.config();
 // --- Pre-emptive Environment Variable Fallbacks & Warnings ---
 if (!process.env.FRONTEND_URL) console.warn("⚠️  FRONTEND_URL is not set. Using default CORS origins.");
 if (!process.env.TWILIO_ACCOUNT_SID) console.warn("⚠️  TWILIO_ACCOUNT_SID is missing. SMS/WhatsApp OTP will be disabled or mocked.");
-if (!process.env.RESEND_API_KEY) console.warn("⚠️  RESEND_API_KEY is missing. Email OTP delivery will fall back to console logging.");
-if (!process.env.SENDER_EMAIL) console.warn("⚠️  SENDER_EMAIL is missing. Defaulting to onboarding@resend.dev (only works for your own verified domain).");
+if (!process.env.GMAIL_USER)          console.warn("⚠️  GMAIL_USER is missing. Email delivery will be in mock/console mode.");
+if (!process.env.GMAIL_CLIENT_ID)     console.warn("⚠️  GMAIL_CLIENT_ID is missing. Gmail REST API transport will not be available.");
+if (!process.env.GMAIL_CLIENT_SECRET) console.warn("⚠️  GMAIL_CLIENT_SECRET is missing. Gmail REST API transport will not be available.");
+if (!process.env.GMAIL_REFRESH_TOKEN) console.warn("⚠️  GMAIL_REFRESH_TOKEN is missing. Gmail REST API transport will not be available.");
 
 // ── Translation Helper (MyMemory Translation API & Offline Fallback) ─────────
 const LOCAL_TRANSLATIONS = {
@@ -535,56 +537,163 @@ const whatsappOtpStore = new Map();
 
 const audioUploadTokens = new Map();
 
-// ── Resend HTTP Email Client (bypasses SMTP port blocks on Render Free Tier) ──
-const SENDER_EMAIL = process.env.SENDER_EMAIL || "Twiller <onboarding@resend.dev>";
+// ── Gmail REST API Transport (HTTPS port 443 — bypasses Render SMTP firewall) ──
+//
+// Why NOT App Password + Nodemailer SMTP:
+//   Render Free Tier blocks outbound TCP on ports 25, 465, and 587 at the
+//   kernel level. An App Password is an SMTP credential — it is useless when
+//   the port it needs is firewalled. No Nodemailer pool or timeout setting
+//   can bypass a network-layer port block.
+//
+// Why Gmail REST API works:
+//   POST https://gmail.googleapis.com/gmail/v1/users/me/messages/send
+//   runs over HTTPS (port 443), which Render never blocks. Auth is via
+//   OAuth2 with a long-lived refresh token — the googleapis library
+//   automatically refreshes the access token on every call.
+//
+// Required env vars (set on Render Dashboard → Environment):
+//   GMAIL_USER          – your.name@gmail.com
+//   GMAIL_CLIENT_ID     – from Google Cloud Console OAuth2 client
+//   GMAIL_CLIENT_SECRET – from Google Cloud Console OAuth2 client
+//   GMAIL_REFRESH_TOKEN – from https://developers.google.com/oauthplayground
 
-let resendClient = null;
-if (process.env.RESEND_API_KEY) {
-  resendClient = new Resend(process.env.RESEND_API_KEY);
-  console.log("✅ Resend HTTP email client initialized successfully.");
+let _gmailApi = null;
+
+if (
+  process.env.GMAIL_USER &&
+  process.env.GMAIL_CLIENT_ID &&
+  process.env.GMAIL_CLIENT_SECRET &&
+  process.env.GMAIL_REFRESH_TOKEN
+) {
+  try {
+    const _oauth2 = new google.auth.OAuth2(
+      process.env.GMAIL_CLIENT_ID,
+      process.env.GMAIL_CLIENT_SECRET,
+      // This redirect_uri MUST match what is registered in Google Cloud Console.
+      // If you used the OAuth Playground for the refresh token, keep this value.
+      "https://developers.google.com/oauthplayground"
+    );
+    _oauth2.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+    _gmailApi = google.gmail({ version: "v1", auth: _oauth2 });
+    console.log(`✅ Gmail REST API transport ready — sending as ${process.env.GMAIL_USER}`);
+  } catch (initErr) {
+    console.error("❌ Gmail REST API transport init failed:", initErr.message);
+    _gmailApi = null;
+  }
 } else if (allowMockServices()) {
-  console.log("ℹ️  RESEND_API_KEY not set — OTP codes will be logged to console (mock mode).");
+  console.log("ℹ️  Gmail API credentials not set — OTP codes will be logged to console (mock mode).");
 } else {
-  console.warn("⚠️ RESEND_API_KEY is missing. Email OTP delivery is disabled until configured on the Render dashboard.");
+  console.warn(
+    "⚠️ Gmail API credentials are missing. Configure GMAIL_USER, GMAIL_CLIENT_ID, " +
+    "GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN on the Render dashboard to enable email delivery."
+  );
 }
 
 /**
- * sendEmail — unified Resend HTTP send wrapper.
- * @param {{ to: string, subject: string, html: string, text: string }} opts
- * @returns {Promise<{ id: string } | { mockId: string }>}
+ * _buildRawMime — RFC 2822 MIME multipart/alternative message encoder.
+ * The Gmail REST API requires the full message as a base64url string.
+ *
+ * @param {{ from: string, to: string, subject: string, html?: string, text?: string }} p
+ * @returns {string} base64url-encoded RFC 2822 message
+ */
+const _buildRawMime = ({ from, to, subject, html, text }) => {
+  const boundary = `twiller_${crypto.randomBytes(10).toString("hex")}`;
+  const plain    = text || "Please view this email in an HTML-capable client.";
+  const htmlBody = html || `<pre style="font-family:sans-serif">${plain}</pre>`;
+
+  const mime = [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    "MIME-Version: 1.0",
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    "",
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: 7bit",
+    "",
+    plain,
+    "",
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: 7bit",
+    "",
+    htmlBody,
+    "",
+    `--${boundary}--`,
+  ].join("\r\n");
+
+  return Buffer.from(mime)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+};
+
+/**
+ * sendEmail — unified Gmail REST API send wrapper.
+ *
+ * Uses HTTPS port 443 — never touches SMTP ports 465 or 587.
+ * All call sites share this one function; zero changes needed elsewhere.
+ *
+ * @param {{ to: string, subject: string, html?: string, text?: string }} opts
+ * @returns {Promise<{ id: string, threadId: string } | { mockId: string }>}
  */
 const sendEmail = async ({ to, subject, html, text }) => {
-  if (resendClient) {
+  // ── LIVE PATH: Gmail REST API ─────────────────────────────────────────
+  if (_gmailApi) {
+    const from = `"Twiller" <${process.env.GMAIL_USER}>`;
+    const raw  = _buildRawMime({ from, to, subject, html, text });
+
     try {
-      const result = await resendClient.emails.send({
-        from: SENDER_EMAIL,
-        to,
-        subject,
-        html,
-        text,
+      const res = await _gmailApi.users.messages.send({
+        userId: "me",            // "me" → authenticated Gmail account
+        requestBody: { raw },
       });
-      if (result.error) {
-        // Resend SDK surfaces API errors inside result.error instead of throwing
-        const errMsg = typeof result.error === "object" ? JSON.stringify(result.error) : String(result.error);
-        console.error(`❌ Resend API error sending to ${to}:`, errMsg);
-        throw new Error(errMsg);
-      }
-      console.log(`✉️  Email sent via Resend to ${to} [id: ${result.data?.id}]`);
-      return result.data;
+
+      const { id, threadId } = res.data;
+      console.log(
+        `✉️  Gmail REST API → delivered to ${to} [msgId: ${id}, thread: ${threadId}]`
+      );
+      return res.data;
+
     } catch (err) {
-      console.error(`❌ Resend sendEmail exception for ${to}:`, err.message);
-      throw err;
+      // Unwrap Google API error details for actionable logging
+      const apiErr  = err?.response?.data?.error;
+      const apiMsg  = apiErr
+        ? `HTTP ${apiErr.code} ${apiErr.status}: ${apiErr.message}`
+        : err.message;
+
+      console.error(`❌ Gmail REST API send failed for ${to}: ${apiMsg}`);
+
+      if (apiErr?.code === 401 || apiErr?.status === "UNAUTHENTICATED") {
+        console.error(
+          "   → Token rejected. Verify GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and " +
+          "GMAIL_REFRESH_TOKEN. If the refresh token was revoked (e.g., password change), " +
+          "re-run the OAuth Playground flow to obtain a fresh token."
+        );
+      } else if (apiErr?.code === 403) {
+        console.error(
+          "   → Permission denied. Ensure the Gmail API is enabled in your Google Cloud " +
+          "project and the OAuth scope 'https://www.googleapis.com/auth/gmail.send' was granted."
+        );
+      } else if (apiErr?.code === 429) {
+        console.error("   → Gmail API rate limit exceeded. Implement exponential back-off.");
+      }
+
+      throw new Error(apiMsg);
     }
   }
 
-  // Mock fallback — only reached in dev/test environments without RESEND_API_KEY
-  console.log(`\n╔══════════════════════════════════════╗`);
-  console.log(`  📧 EMAIL (MOCK — no RESEND_API_KEY set)`);
+  // ── MOCK / DEV FALLBACK ─────────────────────────────────────────────────
+  // Only reached when GMAIL_* credentials are missing (local dev without .env).
+  console.log(`\n╔════════════════════════════════════════╗`);
+  console.log(`  📧 EMAIL (MOCK — Gmail API credentials not set)`);
   console.log(`  To:      ${to}`);
   console.log(`  Subject: ${subject}`);
   console.log(`  Body:    ${text || "(html only)"}`);
-  console.log(`╚══════════════════════════════════════╝\n`);
-  return { mockId: "mock-resend-id" };
+  console.log(`╚════════════════════════════════════════╝\n`);
+  return { mockId: "mock-gmail-id" };
 };
 
 app.set("sendEmail", sendEmail);
@@ -839,7 +948,7 @@ const sendLoginOtp = async (user) => {
     });
   } catch (err) {
     // Non-fatal: OTP is already saved in DB — user can retry from UI
-    console.error("❌ Login OTP email failed (Resend):", err.message);
+    console.error("❌ Login OTP email failed (Gmail API):", err.message);
   }
 };
 
@@ -931,7 +1040,7 @@ app.post("/register", async (req, res) => {
     });
     await newUser.save();
 
-    // Send welcome email via Resend HTTP API
+    // Send welcome email via Gmail REST API
     if (newUser.email && !newUser.email.includes("@phone.twiller.local")) {
       try {
         await sendEmail({
@@ -965,7 +1074,7 @@ app.post("/register", async (req, res) => {
         });
       } catch (mailErr) {
         // Non-critical — user account is created; welcome email failure is logged but not propagated
-        console.error(`❌ Welcome email failed (Resend): ${mailErr.message}`);
+        console.error(`❌ Welcome email failed (Gmail API): ${mailErr.message}`);
       }
     }
 
@@ -1456,7 +1565,7 @@ app.post("/user/send-change-otp", async (req, res) => {
         });
         sentVia.push("email");
       } catch (mailErr) {
-        console.error("❌ Settings change email failed (Resend):", mailErr.message);
+        console.error("❌ Settings change email failed (Gmail API):", mailErr.message);
         sentVia.push("email (mock)");
       }
     }
@@ -1634,7 +1743,7 @@ app.post("/forgot-password/reset", async (req, res) => {
 
     forgotPasswordStore.delete(key); // consume token — one-time use
 
-    // Send password-changed confirmation email via Resend HTTP API (non-critical)
+    // Send password-changed confirmation email via Gmail REST API (non-critical)
     if (user.email && !user.email.includes("@phone.twiller.local")) {
       try {
         await sendEmail({
@@ -1657,7 +1766,7 @@ app.post("/forgot-password/reset", async (req, res) => {
           text: `Hi ${user.displayName},\n\nYour Twiller password was successfully changed.\n\nIf you did not make this change, contact security@twiller.com immediately.`,
         });
       } catch (mailErr) {
-        console.error("❌ Password-changed confirmation email failed (Resend):", mailErr.message);
+        console.error("❌ Password-changed confirmation email failed (Gmail API):", mailErr.message);
         // Non-critical — password was already reset successfully
       }
     }
@@ -1770,7 +1879,7 @@ app.post("/language/request-otp", async (req, res) => {
         });
         sentVia.push("email");
       } catch (mailErr) {
-        console.error(`❌ Language OTP email failed (Resend) for ${user.email}:`, mailErr.message);
+        console.error(`❌ Language OTP email failed (Gmail API) for ${user.email}:`, mailErr.message);
         sentVia.push("email (mock)");
       }
     }
@@ -1784,7 +1893,7 @@ app.post("/language/request-otp", async (req, res) => {
         }
       } catch (smsErr) {
         console.warn("⚠️ Language OTP WhatsApp failed:", smsErr.message);
-        // Fall back to email via Resend if mobile fails
+        // Fall back to email via Gmail API if mobile fails
         if (user.email && !user.email.includes("@phone.twiller.local")) {
           try {
             await sendEmail({
@@ -1800,7 +1909,7 @@ app.post("/language/request-otp", async (req, res) => {
             });
             sentVia.push("email (fallback)");
           } catch (fallbackErr) {
-            console.error("❌ Language OTP email fallback also failed (Resend):", fallbackErr.message);
+            console.error("❌ Language OTP email fallback also failed (Gmail API):", fallbackErr.message);
           }
         }
       }
@@ -1897,7 +2006,7 @@ app.post("/audio/request-otp", async (req, res) => {
         });
         sentVia.push("email");
       } catch (mailErr) {
-        console.error(`❌ Audio upload OTP email failed (Resend) for ${user.email}:`, mailErr.message);
+        console.error(`❌ Audio upload OTP email failed (Gmail API) for ${user.email}:`, mailErr.message);
         sentVia.push("email (mock)");
       }
     }
@@ -2765,7 +2874,7 @@ app.post("/forgot-password", async (req, res) => {
         });
         sentVia.push("email");
       } catch (mailErr) {
-        console.error(`❌ Password reset OTP email failed (Resend) for ${user.email}:`, mailErr.message);
+        console.error(`❌ Password reset OTP email failed (Gmail API) for ${user.email}:`, mailErr.message);
         // Surface OTP in response so user is never fully blocked (only in dev/mock fallback)
         devOtp = otp;
       }
@@ -2992,7 +3101,7 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
     const formattedId = ticket._id.toString().slice(-6).toUpperCase();
 
       // Send Ticket notification to application owner (Owner Email Alert)
-      // Note: Resend HTTP API does not support path-based attachments.
+      // Note: Gmail REST API does not support path-based attachments.
       // The screenshot (if any) is saved to disk on the server and its path is stored in the ticket record.
       const screenshotNote = screenshot ? `\n\n📎 Screenshot: ${screenshot}` : "";
       try {
@@ -3053,7 +3162,7 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
         });
         console.log(`✉️ Support ticket email dispatched to Owner for Ticket #${formattedId}`);
       } catch (ownerMailErr) {
-        console.error("❌ Owner Ticket email notification failed (Resend):", ownerMailErr.message);
+        console.error("❌ Owner Ticket email notification failed (Gmail API):", ownerMailErr.message);
       }
 
     // 1. Send confirmation email to the User (Resend HTTP API)
@@ -3071,7 +3180,7 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
           text: `Hi ${name}, your support ticket has been raised regarding: ${subject}. We will solve your issues shortly. Ticket ID: ${formattedId}.`,
         });
       } catch (mailErr) {
-        console.error("❌ Support Ticket user confirmation email failed (Resend):", mailErr.message);
+        console.error("❌ Support Ticket user confirmation email failed (Gmail API):", mailErr.message);
       }
     }
 
