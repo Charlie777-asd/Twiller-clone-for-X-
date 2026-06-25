@@ -68,7 +68,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
 function SectionHeader({ title, onBack }: { title: string; onBack: () => void }) {
   const { t } = useLanguage();
   return (
-    <div className="sticky top-16 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+    <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
       <div className="flex items-center gap-4 px-4 py-3">
         <button onClick={onBack} className="p-2 rounded-full hover:bg-white/10 transition-colors text-[#e7e9ea]">
           <ChevronLeft size={20} />
@@ -1424,7 +1424,7 @@ export default function SettingsPage() {
   return (
     <div key="main" className="animate-page-fade min-h-screen">
       {/* Header */}
-      <div className="sticky top-16 md:top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+      <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="px-4 py-3">
           <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea] mb-3">{t("settings")}</h1>
           {/* Search */}

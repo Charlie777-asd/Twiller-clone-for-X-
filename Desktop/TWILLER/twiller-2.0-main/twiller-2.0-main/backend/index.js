@@ -518,6 +518,11 @@ const generateProfessionalEmailTemplate = (title, message, code, subtitle = "Act
 };
 
 // ── In-memory OTP store ────────────────────────────────────────────────────
+const hashOtp = (otp) => {
+  if (!otp) return null;
+  return crypto.createHash("sha256").update(String(otp).trim()).digest("hex");
+};
+
 // { email -> { otp, expiresAt } }                  — for audio upload OTP
 const otpStore = new Map();
 
@@ -533,6 +538,9 @@ let mailTransporter = null;
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
   try {
     mailTransporter = nodemailer.createTransport({
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
       service: "gmail",
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
       tls: {
@@ -541,11 +549,18 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       lookup: (hostname, options, callback) => {
         dns.lookup(hostname, { ...options, family: 4 }, callback);
       },
-      connectionTimeout: 3000, // 3 seconds timeout for fast fallback
-      greetingTimeout: 3000,
-      socketTimeout: 3000,
+      connectionTimeout: 5000, // 5 seconds connection timeout
+      greetingTimeout: 5000,
+      socketTimeout: 5000,
     });
-    console.log(`✅ Nodemailer Gmail configured for: ${process.env.EMAIL_USER}`);
+    mailTransporter.verify((error, success) => {
+      if (error) {
+        console.error("❌ Nodemailer transporter verification failed:", error);
+      } else {
+        console.log("✅ Nodemailer transporter is ready to take messages (pooled)");
+      }
+    });
+    console.log(`✅ Nodemailer Gmail configured with active connection pool for: ${process.env.EMAIL_USER}`);
   } catch (err) {
     console.log("⚠️ Gmail transporter creation failed:", err.message);
     mailTransporter = null;
@@ -802,7 +817,7 @@ const sendLoginOtp = async (user) => {
     throw new Error("No valid email registered for OTP verification.");
   }
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  user.otpCode = otp;
+  user.otpCode = hashOtp(otp);
   user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
   await user.save();
 
@@ -1339,7 +1354,7 @@ app.post("/login/verify-otp", async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).send({ error: "User not found" });
 
-    if (!user.otpCode || user.otpCode !== otp) {
+    if (!user.otpCode || user.otpCode !== hashOtp(otp)) {
       return res.status(400).send({ error: "Invalid OTP. Please try again." });
     }
     if (new Date() > new Date(user.otpExpiry)) {
@@ -1741,7 +1756,7 @@ app.post("/language/request-otp", async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    verificationOtpStore.set(user.email, { otp, expiresAt: Date.now() + 10 * 60 * 1000, purpose: "language" });
+    verificationOtpStore.set(user.email, { otp: hashOtp(otp), expiresAt: Date.now() + 10 * 60 * 1000, purpose: "language" });
     
     let sentVia = [];
 
@@ -1831,7 +1846,7 @@ app.post("/language/verify-otp", async (req, res) => {
       verificationOtpStore.delete(email);
       return res.status(400).send({ error: "OTP has expired. Please request a new one." });
     }
-    if (record.otp !== otp) {
+    if (record.otp !== hashOtp(otp)) {
       return res.status(400).send({ error: "Invalid OTP. Please try again." });
     }
     
@@ -1873,7 +1888,7 @@ app.post("/audio/request-otp", async (req, res) => {
     if (!user) return res.status(404).send({ error: "Registered user not found" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(email, { otp, expiresAt: Date.now() + AUDIO_TOKEN_TTL_MS });
+    otpStore.set(email, { otp: hashOtp(otp), expiresAt: Date.now() + AUDIO_TOKEN_TTL_MS });
 
     let sentVia = [];
 
@@ -1940,7 +1955,7 @@ app.post("/audio/verify-otp", (req, res) => {
     otpStore.delete(email);
     return res.status(400).send({ error: "OTP has expired. Please request a new one." });
   }
-  if (record.otp !== otp) return res.status(400).send({ error: "Invalid OTP. Please try again." });
+  if (record.otp !== hashOtp(otp)) return res.status(400).send({ error: "Invalid OTP. Please try again." });
 
   otpStore.delete(email.toLowerCase());
   const uploadToken = `${email.toLowerCase()}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
@@ -2724,7 +2739,7 @@ app.post("/forgot-password", async (req, res) => {
     // Store reset OTP — key is always the normalized identifier
     forgotPasswordStore.set(key, {
       lastRequestTime: Date.now(),
-      otp,
+      otp: hashOtp(otp),
       otpExpiresAt,
       userId: user._id.toString(),
       email: user.email,
@@ -2873,7 +2888,7 @@ app.post("/forgot-password/verify-otp", async (req, res) => {
       forgotPasswordStore.delete(usedKey);
       return res.status(400).send({ error: "OTP has expired. Please request a new one." });
     }
-    if (record.otp !== otp.trim()) {
+    if (record.otp !== hashOtp(otp)) {
       // Check if this is a phone account to give the right error message
       const isPhone = record.phone || (record.email && record.email.includes("@phone.twiller.local"));
       return res.status(400).send({
