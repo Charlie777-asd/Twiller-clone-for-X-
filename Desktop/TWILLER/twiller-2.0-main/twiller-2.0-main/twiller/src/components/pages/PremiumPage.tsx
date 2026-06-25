@@ -608,12 +608,12 @@ export default function PremiumPage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className={`font-bold text-sm ${windowOpen ? "text-[#00ba7c]" : "text-[#ffd400]"}`}>
-              {windowOpen ? t("✅ Payment Window is OPEN") : t("⏰ Payment Window: 6:00 AM – 9:00 PM IST")}
+              {windowOpen ? t("✅ Payment Window is OPEN") : t("⏰ Payment Window: 10:00 AM – 11:00 AM IST")}
             </p>
             <p className="text-[#71767b] text-xs mt-0.5">
               {windowOpen
-                ? t("Premium checkout is available now. Window closes at 9:00 PM IST.")
-                : <>{t("Payments accepted daily 6:00 AM – 9:00 PM IST.")}{countdown > 0 && <> {t("Opens in:")} <span className="font-mono font-bold text-white">{formatCountdown(countdown)}</span></>}</>
+                ? t("Premium checkout is available now. Window closes at 11:00 AM IST.")
+                : <>{t("Payments accepted daily 10:00 AM – 11:00 AM IST.")}{countdown > 0 && <> {t("Opens in:")} <span className="font-mono font-bold text-white">{formatCountdown(countdown)}</span></>}</>
               }
             </p>
           </div>
@@ -779,7 +779,7 @@ export default function PremiumPage() {
           {[
             {
               q: "When can I make a payment?",
-              a: "Payments are accepted between 6:00 AM and 9:00 PM IST every day. The page shows a live countdown to the window."
+              a: "Payments are accepted between 10:00 AM and 11:00 AM IST every day. The page shows a live countdown to the window."
             },
             {
               q: "Is my payment information safe?",

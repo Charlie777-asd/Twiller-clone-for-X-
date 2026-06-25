@@ -10,11 +10,12 @@ import NotificationToast from "../NotificationToast";
 import TweetLimitModal from "../TweetLimitModal";
 import Feed from "../Feed";
 import dynamic from "next/dynamic";
-import { Home, Search, Bell, Mail, User, Feather, Settings } from "lucide-react";
+import { Home, Search, Bell, Mail, User, Feather, Settings, Bookmark, List, HelpCircle, Globe, LogOut, X, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import axiosInstance from "@/lib/axiosInstance";
 import { mediaUrl } from "@/lib/backendUrl";
 import { useLanguage } from "@/context/LanguageContext";
+import LanguageSelectorModal from "../LanguageSelectorModal";
 
 const ExplorePage       = dynamic(() => import("../pages/ExplorePage"),       { ssr: false });
 const NotificationsPage = dynamic(() => import("../pages/NotificationsPage"), { ssr: false });
@@ -48,11 +49,13 @@ function PageContent({ page, viewUserId, onNavigate }: { page: Page | "userProfi
 }
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<Page | "userProfile">("home");
   const [viewUserId, setViewUserId] = useState<string | null>(null);
   const [notifCount, setNotifCount] = useState(0);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
   const fetchUnreadCount = useCallback(async () => {
@@ -216,7 +219,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* ── Mobile Sticky Top Header ─────────────────────────────── */}
       <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-14 flex items-center justify-between px-4 md:hidden flex-shrink-0 w-full">
-        <button onClick={() => setCurrentPage("profile")} className="flex-shrink-0">
+        <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
           <Avatar className="h-8 w-8">
             <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
             <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-xs">
@@ -317,6 +320,165 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Tweet limit modal */}
       <TweetLimitModal onNavigatePremium={() => setCurrentPage("premium")} />
+
+      {/* ── Mobile Navigation Drawer ───────────────────────────── */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/45 backdrop-blur-sm transition-opacity duration-300"
+            onClick={() => setIsDrawerOpen(false)}
+          />
+
+          {/* Drawer Container */}
+          <div className="relative flex flex-col w-[280px] max-w-[80vw] h-full bg-black border-r border-[#2f3336] shadow-2xl p-4 overflow-y-auto animate-drawer-slide-in text-white">
+            {/* Header: Close button and user details */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-bold text-lg">{t("account_info")}</span>
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="p-1 rounded-full hover:bg-white/10 text-white"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Profile Info */}
+            <div className="mb-6 pb-4 border-b border-[#2f3336]">
+              <button
+                onClick={() => {
+                  setCurrentPage("profile");
+                  setIsDrawerOpen(false);
+                }}
+                className="flex flex-col items-start text-left w-full group"
+              >
+                <Avatar className="h-12 w-12 mb-3">
+                  <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
+                  <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-lg">
+                    {user.displayName?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-extrabold text-[17px] text-[#e7e9ea] hover:underline leading-tight truncate max-w-full">
+                  {user.displayName}
+                </span>
+                <span className="text-[#71767b] text-sm truncate max-w-full">
+                  @{user.username}
+                </span>
+              </button>
+
+              <div className="flex gap-4 mt-3 text-sm">
+                <span className="text-[#71767b]">
+                  <strong className="text-white font-bold">{user.following?.length || 0}</strong> {t("following")}
+                </span>
+                <span className="text-[#71767b]">
+                  <strong className="text-white font-bold">{user.followers?.length || 0}</strong> {t("followers")}
+                </span>
+              </div>
+            </div>
+
+            {/* Navigation links */}
+            <nav className="flex-1 space-y-1">
+              {[
+                { name: "home", icon: Home, label: t("home") },
+                { name: "explore", icon: Search, label: t("explore") },
+                { name: "notifications", icon: Bell, label: t("notifications"), count: notifCount },
+                { name: "messages", icon: Mail, label: t("messages") },
+                { name: "bookmarks", icon: Bookmark, label: t("bookmarks") },
+                { name: "lists", icon: List, label: t("lists") },
+                { name: "premium", icon: Star, label: t("premium") },
+                { name: "profile", icon: User, label: t("profile") },
+              ].map((item) => {
+                const isActive = currentPage === item.name;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.name}
+                    onClick={() => {
+                      setCurrentPage(item.name as any);
+                      setIsDrawerOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
+                      isActive ? "font-extrabold text-white" : "font-normal text-[#e7e9ea]"
+                    }`}
+                  >
+                    <div className="relative">
+                      <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 1.75} />
+                      {item.count ? item.count > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] bg-[#1d9bf0] text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                          {item.count > 9 ? "9+" : item.count}
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="text-[17px]">{item.label}</span>
+                  </button>
+                );
+              })}
+
+              <div className="border-t border-[#2f3336] my-2 pt-2" />
+
+              {/* Settings & Privacy */}
+              <button
+                onClick={() => {
+                  setCurrentPage("settings");
+                  setIsDrawerOpen(false);
+                }}
+                className={`w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
+                  currentPage === "settings" ? "font-extrabold text-white" : "font-normal text-[#e7e9ea]"
+                }`}
+              >
+                <Settings className="h-6 w-6" strokeWidth={currentPage === "settings" ? 2.5 : 1.75} />
+                <span className="text-[17px]">{t("settings")}</span>
+              </button>
+
+              {/* Language selection */}
+              <button
+                onClick={() => {
+                  setShowLanguageModal(true);
+                  setIsDrawerOpen(false);
+                }}
+                className="w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-[#e7e9ea] text-left"
+              >
+                <Globe className="h-6 w-6" strokeWidth={1.75} />
+                <span className="text-[17px]">{t("change_language")}</span>
+              </button>
+
+              {/* Help Center */}
+              <button
+                onClick={() => {
+                  setCurrentPage("helpdesk");
+                  setIsDrawerOpen(false);
+                }}
+                className={`w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-white/10 active:scale-95 transition-all text-left ${
+                  currentPage === "helpdesk" ? "font-extrabold text-white" : "font-normal text-[#e7e9ea]"
+                }`}
+              >
+                <HelpCircle className="h-6 w-6" strokeWidth={currentPage === "helpdesk" ? 2.5 : 1.75} />
+                <span className="text-[17px]">{t("Help Desk")}</span>
+              </button>
+
+              <div className="border-t border-[#2f3336] my-2 pt-2" />
+
+              {/* Logout */}
+              <button
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center gap-4 px-3 py-3 rounded-full hover:bg-red-500/10 active:scale-95 transition-all text-red-500 text-left font-bold"
+              >
+                <LogOut className="h-6 w-6" strokeWidth={2} />
+                <span className="text-[17px]">{t("logout")}</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+      )}
+
+      {/* Language selector modal */}
+      {showLanguageModal && (
+        <LanguageSelectorModal onClose={() => setShowLanguageModal(false)} />
+      )}
     </div>
   );
 };

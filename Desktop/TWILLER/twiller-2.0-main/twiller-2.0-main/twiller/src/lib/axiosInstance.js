@@ -108,6 +108,19 @@ const axiosInstance = axios.create({
 // Request Interceptor: Automatically inject authentication and Bearer tokens
 axiosInstance.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
+    const isLogoutPending = localStorage.getItem("logout-pending") === "true";
+    const isLogoutRequest = config.url && config.url.includes("/logout");
+    
+    if (isLogoutPending && !isLogoutRequest) {
+      // Cancel/reject request to prevent network requests during logout
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      if (controller) {
+        config.signal = controller.signal;
+        controller.abort();
+      }
+      return Promise.reject(new axios.Cancel("Request cancelled because logout is pending."));
+    }
+
     const sessionId = localStorage.getItem("twitter-session-id");
     if (sessionId) {
       config.headers["x-session-id"] = sessionId;
@@ -121,6 +134,9 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
     if (error.response) {
       const { status, data } = error.response;
       const errorMsg = data?.error || data?.message || "A network error occurred.";
@@ -128,6 +144,7 @@ axiosInstance.interceptors.response.use(
       if (status === 401) {
         // Session expired or revoked
         if (typeof window !== "undefined") {
+          localStorage.setItem("logout-pending", "true");
           localStorage.removeItem("twitter-user");
           localStorage.removeItem("twitter-session-id");
           window.location.href = "/";

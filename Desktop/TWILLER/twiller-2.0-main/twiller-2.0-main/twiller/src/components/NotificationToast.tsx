@@ -156,19 +156,28 @@ export default function NotificationToast() {
           from { width: 100%; }
           to   { width: 0%; }
         }
+        @keyframes twiller-slide-down {
+          from { opacity: 0; transform: translateY(-16px) scale(0.96); }
+          to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
         @keyframes twiller-slide-up {
           from { opacity: 0; transform: translateY(16px) scale(0.96); }
           to   { opacity: 1; transform: translateY(0)   scale(1); }
         }
         .twiller-toast-enter {
-          animation: twiller-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          animation: twiller-slide-down 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @media (min-width: 768px) {
+          .twiller-toast-enter {
+            animation: twiller-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          }
         }
         .twiller-progress {
           animation: twiller-shrink 6s linear forwards;
         }
       `}</style>
 
-      <div className="fixed bottom-6 right-6 z-[200] flex flex-col-reverse gap-2.5 w-[360px] pointer-events-none">
+      <div className="fixed top-4 left-4 right-4 md:top-auto md:bottom-6 md:left-auto md:right-6 z-[200] flex flex-col md:flex-col-reverse gap-2.5 w-auto md:w-[360px] pointer-events-none">
         {toasts.map((toast, i) => {
           const config = notifConfig[toast.type] || notifConfig.mention;
           return (

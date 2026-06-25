@@ -127,6 +127,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
+      if (localStorage.getItem("logout-pending") === "true") {
+        localStorage.removeItem("logout-pending");
+        setUser(null);
+        setIsLoading(false);
+        try {
+          await signOut(auth);
+        } catch { /* ignore */ }
+        return;
+      }
       if (fbUser?.email) {
         try {
           let ud = null;
@@ -193,6 +202,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem("twitter-session-id");
               } else {
                 setUser(parsed);
+                if (localStorage.getItem("logout-pending") === "true") {
+                   setUser(null);
+                   return;
+                }
                 // Background verify session
                 axiosInstance.get("/loggedinuser", { params: { email: parsed.email } })
                   .then(res => {
@@ -230,6 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshUser = async () => {
+    if (localStorage.getItem("logout-pending") === "true") return;
     if (!user?.email) return;
     try {
       const res = await axiosInstance.get("/loggedinuser", { params: { email: user.email } });
@@ -245,6 +259,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     setIsLoading(true);
     try {
       const res = await axiosInstance.post("/login", { email, password });
@@ -268,6 +285,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithPhone = async (phone: string, password: string, phoneVerified: boolean = false) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     setIsLoading(true);
     try {
       const res = await axiosInstance.post("/login/phone", { phone, password, phoneVerified });
@@ -291,6 +311,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (email: string, password: string, username: string, displayName: string) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     setIsLoading(true);
     try {
       const res = await axiosInstance.post("/register", {
@@ -315,6 +338,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signupWithPhone = async (phone: string, password: string, username: string, displayName: string, phoneVerified: boolean = false) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     setIsLoading(true);
     try {
       const res = await axiosInstance.post("/register/phone", { phone, password, username, displayName, phoneVerified });
@@ -334,6 +360,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      return;
+    }
+    localStorage.setItem("logout-pending", "true");
     try {
       const sessionId = localStorage.getItem("twitter-session-id");
       const storedUser = localStorage.getItem("twitter-user");
@@ -368,6 +398,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     avatar: string;
     coverImage?: string;
   }) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     if (!user) return;
     setIsLoading(true);
     try {
@@ -382,6 +415,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUser = (newData: Partial<User>) => {
+    if (localStorage.getItem("logout-pending") === "true") return;
     if (!user) return;
     const updated = { ...user, ...newData };
     setUser(updated);
@@ -389,6 +423,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const setUserPassword = async (newPassword: string, currentPassword?: string) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     if (!user) throw new Error("Not logged in");
     const res = await axiosInstance.patch(`/user/${encodeEmailPath(user.email)}/password`, { newPassword, currentPassword });
     if (res.data?.user) {
@@ -399,6 +436,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyUserPassword = async (password: string): Promise<boolean> => {
+    if (localStorage.getItem("logout-pending") === "true") return false;
     if (!user) return false;
     try {
       const res = await axiosInstance.post("/user/verify-password", { email: user.email, password });
@@ -409,6 +447,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const googlesignin = async () => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -460,6 +501,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyLoginOTP = async (email: string, otp: string) => {
+    if (localStorage.getItem("logout-pending") === "true") {
+      throw new Error("Logout is currently pending.");
+    }
     setIsLoading(true);
     try {
       const res = await axiosInstance.post("/login/verify-otp", { email, otp });
