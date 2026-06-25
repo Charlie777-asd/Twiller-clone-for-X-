@@ -217,7 +217,8 @@ export const verifyPaymentFrontend = async (req, res) => {
             }, { new: true });
 
             if (updatedUser) {
-              await sendSubscriptionReceipt(req, updatedUser, plan, PLAN_PRICES[plan], razorpay_order_id, razorpay_payment_id, expiry);
+              sendSubscriptionReceipt(req, updatedUser, plan, PLAN_PRICES[plan], razorpay_order_id, razorpay_payment_id, expiry)
+                .catch(err => console.error("Error sending receipt in background:", err));
             }
 
             return res.status(200).json({ success: true, paymentId: razorpay_payment_id, plan, amount: PLAN_PRICES[plan], planName: plan, user: updatedUser });
@@ -288,7 +289,8 @@ export const webhook = async (req, res) => {
         }, { new: true });
 
         if (updatedUser) {
-          await sendSubscriptionReceipt(req, updatedUser, activatedPlan, amountINR, order.id, payment.id, expiry);
+          sendSubscriptionReceipt(req, updatedUser, activatedPlan, amountINR, order.id, payment.id, expiry)
+            .catch(err => console.error("Error sending receipt in background from webhook:", err));
         }
       }
 
@@ -333,5 +335,25 @@ export const cancelPlan = async (req, res) => {
   } catch (error) {
     console.error("Cancel plan error:", error);
     res.status(500).json({ error: "Failed to cancel plan" });
+  }
+};
+
+export const markFailed = async (req, res) => {
+  try {
+    const { orderId, failureReason } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ error: "orderId is required" });
+    }
+
+    const updatedPayment = await Payment.findOneAndUpdate(
+      { razorpay_order_id: orderId },
+      { $set: { status: "FAILED", failure_reason: failureReason || "Payment cancelled" } },
+      { new: true }
+    );
+
+    res.status(200).json({ success: true, payment: updatedPayment });
+  } catch (error) {
+    console.error("Mark failed payment error:", error);
+    res.status(500).json({ error: "Failed to mark payment as failed" });
   }
 };

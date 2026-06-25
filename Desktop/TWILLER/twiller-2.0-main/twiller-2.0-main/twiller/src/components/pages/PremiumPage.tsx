@@ -462,6 +462,20 @@ export default function PremiumPage() {
     }
   };
 
+  const handleCancelMockPayment = async () => {
+    if (!mockOrderToConfirm) return;
+    const orderId = mockOrderToConfirm.orderId;
+    setMockOrderToConfirm(null);
+    try {
+      await axiosInstance.post("/api/payments/mark-failed", {
+        orderId,
+        failureReason: "Mock checkout cancelled by user"
+      });
+    } catch (err) {
+      console.error("Failed to mark mock payment as failed:", err);
+    }
+  };
+
   const handleCancelSubscription = async () => {
     if (!user || !window.confirm(t("Are you sure you want to cancel your premium subscription?"))) return;
     try {
@@ -556,12 +570,34 @@ export default function PremiumPage() {
               setPaying(false);
             }
           },
+          modal: {
+            ondismiss: async () => {
+              try {
+                await axiosInstance.post("/api/payments/mark-failed", {
+                  orderId,
+                  failureReason: "Razorpay payment checkout dismissed by user"
+                });
+              } catch (err) {
+                console.error("Failed to mark payment as failed on dismiss:", err);
+              }
+            }
+          },
           theme: {
             color: plan.color
           }
         };
 
         const rzp1 = new (window as any).Razorpay(options);
+        rzp1.on('payment.failed', async (response: any) => {
+          try {
+            await axiosInstance.post("/api/payments/mark-failed", {
+              orderId,
+              failureReason: response.error?.description || "Razorpay payment failed"
+            });
+          } catch (err) {
+            console.error("Failed to mark failed payment:", err);
+          }
+        });
         rzp1.open();
       }
     } catch (err: any) {
@@ -719,7 +755,7 @@ export default function PremiumPage() {
           <MockCheckoutModal
             data={mockOrderToConfirm}
             onConfirm={handleConfirmMockPayment}
-            onClose={() => setMockOrderToConfirm(null)}
+            onClose={handleCancelMockPayment}
             loading={confirmingMock}
           />
         )}

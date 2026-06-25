@@ -266,6 +266,7 @@ const sendSmsOtp = async (phone, otp, customMessage = null) => {
       return { success: true, devMode: false };
     } catch (error) {
       console.error(`❌ Failed to send WhatsApp message via Twilio:`, error.message);
+      return { success: false, error: error.message };
     }
   }
 
@@ -1363,6 +1364,18 @@ app.post("/user/send-change-otp", async (req, res) => {
       return res.status(400).send({ error: "No contact info available to send OTP." });
     }
 
+    if (channel === 'mobile' && !user.phone) {
+      return res.status(400).send({
+        error: "No mobile number is registered with this account. Please go back and select Email, or add a phone number first.",
+        phoneMissing: true
+      });
+    }
+
+    let warning = null;
+    if (channel === 'both' && !user.phone) {
+      warning = "No mobile number is registered with this account. The OTP was only sent to your email. Please add a mobile number first.";
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     verificationOtpStore.set(`${userId}:${purpose}`, { otp, expiresAt: Date.now() + 10 * 60 * 1000, purpose });
 
@@ -1400,9 +1413,28 @@ app.post("/user/send-change-otp", async (req, res) => {
     if ((channel === 'mobile' || channel === 'both') && user.phone) {
       try {
         const smsRes = await sendSmsOtp(user.phone, otp);
-        if (smsRes.success) sentVia.push("mobile");
+        if (smsRes && (smsRes.success || smsRes.devMode)) {
+          sentVia.push("mobile");
+        } else {
+          if (channel === 'mobile') {
+            return res.status(500).send({
+              error: `Twilio WhatsApp delivery failed: ${smsRes?.error || "Unknown error"}. If you have not joined the Twilio WhatsApp sandbox, please join to receive OTPs.`,
+              isTwilioError: true
+            });
+          } else {
+            warning = `Twilio WhatsApp delivery failed: ${smsRes?.error || "Unknown error"}. The OTP was only sent to your email. If you have not joined the Twilio WhatsApp sandbox, please join to receive OTPs.`;
+          }
+        }
       } catch (smsErr) {
         console.warn("⚠️ Settings change WhatsApp failed:", smsErr.message);
+        if (channel === 'mobile') {
+          return res.status(500).send({
+            error: `Twilio WhatsApp delivery failed: ${smsErr.message}. If you have not joined the Twilio WhatsApp sandbox, please join to receive OTPs.`,
+            isTwilioError: true
+          });
+        } else {
+          warning = `Twilio WhatsApp delivery failed: ${smsErr.message}. The OTP was only sent to your email. If you have not joined the Twilio WhatsApp sandbox, please join to receive OTPs.`;
+        }
       }
     }
 
@@ -1410,7 +1442,10 @@ app.post("/user/send-change-otp", async (req, res) => {
       return res.status(500).send({ error: "Failed to send OTP via email and WhatsApp." });
     }
 
-    return res.status(200).send({ message: `OTP sent successfully to your registered ${sentVia.join(" and ")}.` });
+    return res.status(200).send({
+      message: `OTP sent successfully to your registered ${sentVia.join(" and ")}.`,
+      warning
+    });
   } catch (error) {
     return res.status(400).send({ error: error.message });
   }
@@ -2690,6 +2725,18 @@ app.post("/forgot-password", async (req, res) => {
     // Persist to DB so rate limit survives server restarts
     await User.findByIdAndUpdate(user._id, { $set: { lastPasswordResetDate: today } });
 
+    if (channel === 'mobile' && !user.phone) {
+      return res.status(400).send({
+        error: "No mobile number is registered with this account. Please use the Email option, or log in to configure your mobile number.",
+        phoneMissing: true
+      });
+    }
+
+    let warning = null;
+    if (channel === 'both' && !user.phone) {
+      warning = "No mobile number is registered with this account. The OTP was only sent to your email. Please add a mobile number in settings once logged in.";
+    }
+
     let sentVia = [];
     let devOtp = null;
     let maskedEmail = null;
@@ -2729,12 +2776,29 @@ app.post("/forgot-password", async (req, res) => {
 
       try {
         const smsRes = await sendSmsOtp(user.phone, otp);
-        if (smsRes.success || smsRes.devMode) {
+        if (smsRes && (smsRes.success || smsRes.devMode)) {
           sentVia.push("mobile");
           if (smsRes.devMode) devOtp = otp;
+        } else {
+          if (channel === 'mobile') {
+            return res.status(500).send({
+              error: `Twilio WhatsApp delivery failed: ${smsRes?.error || "Unknown error"}. If you haven't joined the Twilio WhatsApp sandbox, please join to receive OTPs.`,
+              isTwilioError: true
+            });
+          } else {
+            warning = `Twilio WhatsApp delivery failed: ${smsRes?.error || "Unknown error"}. The OTP was only sent to your email. If you haven't joined the Twilio WhatsApp sandbox, please join to receive OTPs.`;
+          }
         }
       } catch (smsErr) {
         console.warn("⚠️ Password reset WhatsApp failed:", smsErr.message);
+        if (channel === 'mobile') {
+          return res.status(500).send({
+            error: `Twilio WhatsApp delivery failed: ${smsErr.message}. If you haven't joined the Twilio WhatsApp sandbox, please join to receive OTPs.`,
+            isTwilioError: true
+          });
+        } else {
+          warning = `Twilio WhatsApp delivery failed: ${smsErr.message}. The OTP was only sent to your email. If you haven't joined the Twilio WhatsApp sandbox, please join to receive OTPs.`;
+        }
       }
     }
 
@@ -2755,6 +2819,7 @@ app.post("/forgot-password", async (req, res) => {
       email: user.email,
       maskedEmail: maskedEmail, // kept for backward compatibility
       message: `OTP sent successfully to your registered ${sentVia.join(" and ")}.`,
+      warning,
       ...(devOtp ? { devOtp } : {}),
     });
   } catch (error) {
@@ -3121,6 +3186,13 @@ app.post("/api/auth/send-whatsapp-otp", async (req, res) => {
     whatsappOtpStore.set(formattedPhone, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
 
     const sendResult = await sendSmsOtp(formattedPhone, otp);
+
+    if (sendResult && !sendResult.success) {
+      return res.status(500).send({
+        error: `Twilio delivery failed: ${sendResult.error || "Unknown error"}. If you have not joined the Twilio WhatsApp sandbox, please join to receive OTPs.`,
+        isTwilioError: true
+      });
+    }
 
     return res.status(200).send({
       success: true,

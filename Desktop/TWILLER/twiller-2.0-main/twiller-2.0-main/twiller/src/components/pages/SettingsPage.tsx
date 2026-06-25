@@ -152,6 +152,7 @@ function AccountSection({ onBack }: { onBack: () => void }) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showChannelPicker, setShowChannelPicker] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<OtpChannel>("both");
@@ -178,7 +179,7 @@ function AccountSection({ onBack }: { onBack: () => void }) {
 
   const closeEdit = () => {
     setEditing(null); setOtpStep("idle");
-    setOtpValue(""); setNewValue(""); setChangeToken(""); setError("");
+    setOtpValue(""); setNewValue(""); setChangeToken(""); setError(""); setWarning("");
   };
 
   // Simple save for username / displayName
@@ -197,17 +198,23 @@ function AccountSection({ onBack }: { onBack: () => void }) {
   // Step 1: Request OTP for email/phone change
   const sendChangeOtp = async (channel: OtpChannel = selectedChannel) => {
     if (!user?._id) return;
-    setOtpStep("sending"); setError("");
+    setOtpStep("sending"); setError(""); setWarning("");
     const purpose = editing === "email" ? "change_email" : "change_phone";
     try {
       const res = await axiosInstance.post("/user/send-change-otp", { userId: user._id, purpose, channel });
       setOtpStep("otp_entry");
       startResendCooldown();
+      if (res.data.warning) {
+        setWarning(res.data.warning);
+      }
       setSuccess(res.data.message || t("OTP sent to your email."));
       setTimeout(() => setSuccess(""), 4000);
     } catch (err) {
-      const axErr = err as { response?: { data?: { error?: string } } };
+      const axErr = err as { response?: { data?: { error?: string; warning?: string } } };
       setError(axErr?.response?.data?.error || "Failed to send OTP.");
+      if (axErr?.response?.data?.warning) {
+        setWarning(axErr.response.data.warning);
+      }
       setOtpStep("idle");
     }
   };
@@ -342,7 +349,42 @@ function AccountSection({ onBack }: { onBack: () => void }) {
               </button>
             </div>
 
-            {error && <p className="text-[#f4212e] text-sm mb-3 bg-[#f4212e]/10 border border-[#f4212e]/20 rounded-xl p-3">{error}</p>}
+            {error && (
+              <div className="text-[#f4212e] text-sm mb-3 bg-[#f4212e]/10 border border-[#f4212e]/20 rounded-xl p-3">
+                <p>{error}</p>
+                {(error.toLowerCase().includes("twilio") || error.toLowerCase().includes("sandbox") || error.toLowerCase().includes("phone") || error.toLowerCase().includes("mobile")) && (
+                  <div className="mt-2 p-2 bg-[#25D366]/10 rounded-lg border border-[#25D366]/20">
+                    <p className="text-[#8b98a5] text-[11px] leading-relaxed">
+                      To receive OTP codes on WhatsApp, make sure to add your phone number and join our Twilio sandbox.
+                    </p>
+                    <a
+                      href="https://wa.me/14155238886?text=join%20bone-couple"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#25D366] text-xs font-bold underline mt-1 block"
+                    >
+                      Click here to join Twilio Sandbox →
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {warning && (
+              <div className="text-[#ffd400] text-sm mb-3 bg-[#ffd400]/10 border border-[#ffd400]/20 rounded-xl p-3">
+                <p>{warning}</p>
+                <div className="mt-2 p-2 bg-[#25D366]/10 rounded-lg border border-[#25D366]/20">
+                  <a
+                    href="https://wa.me/14155238886?text=join%20bone-couple"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#25D366] text-xs font-bold underline block"
+                  >
+                    Tap here to join Twilio Sandbox →
+                  </a>
+                </div>
+              </div>
+            )}
 
             {/* Username / DisplayName — simple edit */}
             {(editing === "username" || editing === "displayName") && (
@@ -1360,21 +1402,27 @@ export default function SettingsPage() {
 
   if (section !== "main") {
     const props = { onBack: () => setSection("main") };
+    let content = null;
     switch (section) {
-      case "account":       return <AccountSection {...props} />;
-      case "security":      return <SecuritySection {...props} />;
-      case "privacy":       return <PrivacySection {...props} />;
-      case "notifications": return <NotificationsSection {...props} />;
-      case "accessibility": return <AccessibilitySection {...props} />;
-      case "display":       return <DisplaySection {...props} />;
-      case "additional":    return <AdditionalSection {...props} />;
-      case "helpcentre":    return <HelpCentreSection {...props} />;
-      case "transactions":  return <TransactionsSection {...props} />;
+      case "account":       content = <AccountSection {...props} />; break;
+      case "security":      content = <SecuritySection {...props} />; break;
+      case "privacy":       content = <PrivacySection {...props} />; break;
+      case "notifications": content = <NotificationsSection {...props} />; break;
+      case "accessibility": content = <AccessibilitySection {...props} />; break;
+      case "display":       content = <DisplaySection {...props} />; break;
+      case "additional":    content = <AdditionalSection {...props} />; break;
+      case "helpcentre":    content = <HelpCentreSection {...props} />; break;
+      case "transactions":  content = <TransactionsSection {...props} />; break;
     }
+    return (
+      <div key={section} className="animate-page-fade">
+        {content}
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen">
+    <div key="main" className="animate-page-fade min-h-screen">
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="px-4 py-3">

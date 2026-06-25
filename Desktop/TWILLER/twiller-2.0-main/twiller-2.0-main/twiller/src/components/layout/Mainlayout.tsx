@@ -17,14 +17,14 @@ import { mediaUrl } from "@/lib/backendUrl";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageSelectorModal from "../LanguageSelectorModal";
 
-const ExplorePage       = dynamic(() => import("../pages/ExplorePage"),       { ssr: false });
-const NotificationsPage = dynamic(() => import("../pages/NotificationsPage"), { ssr: false });
-const MessagesPage      = dynamic(() => import("../pages/MessagesPage"),      { ssr: false });
-const BookmarksPage     = dynamic(() => import("../pages/BookmarksPage"),     { ssr: false });
-const ListsPage         = dynamic(() => import("../pages/ListsPage"),         { ssr: false });
-const PremiumPage       = dynamic(() => import("../pages/PremiumPage"),       { ssr: false });
-const SettingsPage      = dynamic(() => import("../pages/SettingsPage"),      { ssr: false });
-const HelpDeskPage      = dynamic(() => import("../pages/HelpDeskPage"),      { ssr: false });
+import ExplorePage from "../pages/ExplorePage";
+import NotificationsPage from "../pages/NotificationsPage";
+import MessagesPage from "../pages/MessagesPage";
+import BookmarksPage from "../pages/BookmarksPage";
+import ListsPage from "../pages/ListsPage";
+import PremiumPage from "../pages/PremiumPage";
+import SettingsPage from "../pages/SettingsPage";
+import HelpDeskPage from "../pages/HelpDeskPage";
 
 import UserProfilePage from "../pages/UserProfilePage";
 

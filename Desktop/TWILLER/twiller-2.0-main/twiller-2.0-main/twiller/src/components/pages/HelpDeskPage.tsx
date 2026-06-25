@@ -211,8 +211,9 @@ export default function HelpDeskPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 mt-6">
-        {/* TAB 1: SUBMIT TICKET FORM */}
-        {activeTab === "submit" && (
+        <div key={activeTab} className="animate-page-fade">
+          {/* TAB 1: SUBMIT TICKET FORM */}
+          {activeTab === "submit" && (
           <div className="space-y-6">
             <div className="bg-[#16181c] border border-[#2f3336] rounded-2xl p-5">
               <h2 className="text-[#e7e9ea] font-extrabold text-lg mb-1 flex items-center gap-2">
@@ -537,7 +538,7 @@ export default function HelpDeskPage() {
               },
               {
                 q: "What payment window restrictions are enforced?",
-                a: "To ensure real-time sandbox clearing, payments are accepted daily between 6:00 AM – 9:00 PM IST. If you submit a checkout request outside this window, it will cancel. Check the live countdown on the Premium plans page for opening hours."
+                a: "To ensure real-time sandbox clearing, payments are accepted daily between 10:00 AM – 11:00 AM IST. If you submit a checkout request outside this window, it will cancel. Check the live countdown on the Premium plans page for opening hours."
               },
               {
                 q: "How can I cancel my active subscription?",
@@ -575,6 +576,7 @@ export default function HelpDeskPage() {
             })}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

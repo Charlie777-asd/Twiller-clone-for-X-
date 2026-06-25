@@ -79,6 +79,7 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const strengthScore = getStrength(newPassword);
@@ -137,6 +138,7 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setWarning("");
     if (!validateIdentifier()) return;
     setIsSubmitting(true);
     try {
@@ -147,6 +149,9 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
       setVerifiedEmail(res.data.email || identifier);
       // Dev mode: OTP exposed in response (no SMS/email gateway configured)
       setDevOtp(res.data.devOtp || null);
+      if (res.data.warning) {
+        setWarning(res.data.warning);
+      }
       setStep("otp");
       startResendCooldown();
     } catch (err: unknown) {
@@ -165,12 +170,16 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     setError("");
+    setWarning("");
     setIsSubmitting(true);
     try {
       const res = await axiosInstance.post("/forgot-password", { identifier: identifier.trim(), channel: otpChannel });
       setMaskedContact(res.data.maskedContact || res.data.maskedEmail || identifier);
       setContactType(res.data.contactType || "email");
       setDevOtp(res.data.devOtp || null);
+      if (res.data.warning) {
+        setWarning(res.data.warning);
+      }
       setOtp("");
       startResendCooldown();
     } catch (err: unknown) {
@@ -346,7 +355,39 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
 
               {error && (
                 <div style={{ background: "rgba(244,33,46,0.08)", border: "1px solid rgba(244,33,46,0.25)", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", color: "#f4212e", fontSize: "14px" }}>
-                  {error}
+                  <p style={{ margin: 0 }}>{error}</p>
+                  {(error.toLowerCase().includes("twilio") || error.toLowerCase().includes("sandbox") || error.toLowerCase().includes("phone") || error.toLowerCase().includes("mobile")) && (
+                    <div style={{ marginTop: "10px", padding: "10px", background: "rgba(37,211,102,0.1)", borderRadius: "8px", border: "1px solid rgba(37,211,102,0.2)" }}>
+                      <p style={{ margin: 0, color: "#8b98a5", fontSize: "12px", lineHeight: "1.4" }}>
+                        To receive Twiller OTP messages on WhatsApp, you must join our Twilio sandbox. Message "join bone-couple" to +1 415 523 8886.
+                      </p>
+                      <a
+                        href="https://wa.me/14155238886?text=join%20bone-couple"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: "inline-block", marginTop: "6px", color: "#25D366", fontSize: "12px", fontWeight: "bold", textDecoration: "underline" }}
+                      >
+                        Click here to join Twilio Sandbox →
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {warning && (
+                <div style={{ background: "rgba(255,212,0,0.08)", border: "1px solid rgba(255,212,0,0.25)", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", color: "#ffd400", fontSize: "14px" }}>
+                  <p style={{ margin: 0, fontWeight: "bold" }}>⚠️ Warning</p>
+                  <p style={{ margin: "4px 0 0" }}>{warning}</p>
+                  <div style={{ marginTop: "8px" }}>
+                    <a
+                      href="https://wa.me/14155238886?text=join%20bone-couple"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#25D366", fontWeight: "bold", textDecoration: "underline", fontSize: "12px" }}
+                    >
+                      Tap here to join the Twilio WhatsApp Sandbox →
+                    </a>
+                  </div>
                 </div>
               )}
 
