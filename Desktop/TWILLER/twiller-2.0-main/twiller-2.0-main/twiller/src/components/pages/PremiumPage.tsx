@@ -100,6 +100,9 @@ function getISTDate() {
 }
 
 function isWithinPaymentWindow() {
+  if (process.env.NEXT_PUBLIC_BYPASS_TIME_LIMITS === "true" || process.env.NODE_ENV !== "production") {
+    return true;
+  }
   const ist = getISTDate();
   const totalMin = ist.getUTCHours() * 60 + ist.getUTCMinutes();
   return totalMin >= 10 * 60 && totalMin < 11 * 60; // 10:00 AM – 11:00 AM IST

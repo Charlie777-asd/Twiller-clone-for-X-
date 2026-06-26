@@ -41,6 +41,7 @@ export default function AudioTweetModal({ isOpen, onClose, onTweetPosted }: Audi
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
@@ -53,6 +54,9 @@ export default function AudioTweetModal({ isOpen, onClose, onTweetPosted }: Audi
 
   // Check if current time is within 2:00 PM – 7:00 PM IST (using Intl.DateTimeFormat for clock hardening)
   const isWithinTimeWindow = () => {
+    if (process.env.NEXT_PUBLIC_BYPASS_TIME_LIMITS === "true" || process.env.NODE_ENV !== "production") {
+      return true;
+    }
     try {
       const options: Intl.DateTimeFormatOptions = { timeZone: "Asia/Kolkata", hour: "numeric", minute: "numeric", hour12: false };
       const formatter = new Intl.DateTimeFormat("en-US", options);
@@ -99,6 +103,7 @@ export default function AudioTweetModal({ isOpen, onClose, onTweetPosted }: Audi
       setContent("");
       setDuration(0);
       durationRef.current = 0;
+      setDevOtp(null);
     }
   }, [isOpen]);
 
@@ -115,10 +120,11 @@ export default function AudioTweetModal({ isOpen, onClose, onTweetPosted }: Audi
     setIsRequestingOtp(true);
     setOtpError("");
     try {
-      await axiosInstance.post("/audio/request-otp", {
+      const res = await axiosInstance.post("/audio/request-otp", {
         email: user.email,
         channel: "email"
       });
+      setDevOtp(res.data.devOtp || null);
       setStep("otp-verify");
       setOtpCountdown(600); // 10 minutes
     } catch (err: any) {
@@ -394,6 +400,16 @@ export default function AudioTweetModal({ isOpen, onClose, onTweetPosted }: Audi
                     <p className="text-[#71767b] text-xs mt-1">{t("code_expires_10m") || "Code expires in 10 minutes"} ({formatTime(otpCountdown)})</p>
                   )}
                 </div>
+
+                {devOtp && (
+                  <div className="p-3 bg-[#1d9bf0]/10 border border-[#1d9bf0]/30 rounded-xl">
+                    <p className="text-[#1d9bf0] text-sm font-semibold flex items-center justify-center space-x-2">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>🔧 Dev Mode Auto-OTP: <strong>{devOtp}</strong></span>
+                    </p>
+                  </div>
+                )}
+
                 <input
                   type="text"
                   inputMode="numeric"

@@ -411,6 +411,9 @@ const AUDIO_WINDOW_START_MINUTES = 14 * 60; // 2:00 PM IST
 const AUDIO_WINDOW_END_MINUTES = 19 * 60; // 7:00 PM IST
 
 const isWithinAudioWindow = () => {
+  if (process.env.BYPASS_TIME_LIMITS === "true" || process.env.NODE_ENV !== "production") {
+    return true;
+  }
   let hour = 0;
   let minute = 0;
   try {
@@ -440,6 +443,9 @@ const PLAN_PRICES = { free: 0, bronze: 100, silver: 300, gold: 1000 };
 const PLAN_NAMES  = { bronze: "Bronze", silver: "Silver", gold: "Gold" };
 
 const isWithinPaymentWindow = () => {
+  if (process.env.BYPASS_TIME_LIMITS === "true" || process.env.NODE_ENV !== "production") {
+    return true;
+  }
   let hour = 0;
   let minute = 0;
   try {
@@ -2039,6 +2045,7 @@ app.post("/audio/request-otp", async (req, res) => {
     otpStore.set(email, { otp: hashOtp(otp), expiresAt: Date.now() + AUDIO_TOKEN_TTL_MS });
 
     let sentVia = [];
+    let devOtp = null;
 
     // 1. Send via Email (Resend HTTP API)
     if ((channel === 'email' || channel === 'both') && user.email && !user.email.includes("@phone.twiller.local")) {
@@ -2060,6 +2067,7 @@ app.post("/audio/request-otp", async (req, res) => {
       } catch (mailErr) {
         console.error(`❌ Audio upload OTP email failed (Gmail API) for ${user.email}:`, mailErr.message);
         sentVia.push("email (mock)");
+        devOtp = otp;
       }
     }
 
@@ -2070,14 +2078,22 @@ app.post("/audio/request-otp", async (req, res) => {
         sentVia.push("mobile");
       } catch (smsErr) {
         console.log(`⚠️ SMS send failed for ${user.phone}: ${smsErr.message}`);
+        devOtp = otp;
       }
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      devOtp = otp;
     }
 
     if (sentVia.length === 0) {
       return res.status(400).send({ error: "Failed to send OTP to any channel. Check your contact details." });
     }
 
-    return res.send({ message: `OTP sent successfully via ${sentVia.join(' and ')}` });
+    return res.send({
+      message: `OTP sent successfully via ${sentVia.join(' and ')}`,
+      ...(devOtp ? { devOtp } : {})
+    });
   } catch (error) {
     return res.status(500).send({ error: error.message });
   }

@@ -11,6 +11,9 @@ const PAYMENT_WINDOW_START = 10 * 60; // 10:00 AM in minutes
 const PAYMENT_WINDOW_END   = 11 * 60; // 11:00 AM in minutes
 
 const isWithinPaymentWindow = () => {
+  if (process.env.BYPASS_TIME_LIMITS === "true" || process.env.NODE_ENV !== "production") {
+    return true;
+  }
   const now = new Date();
   const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % (24 * 60);
   return istMinutes >= PAYMENT_WINDOW_START && istMinutes < PAYMENT_WINDOW_END;
