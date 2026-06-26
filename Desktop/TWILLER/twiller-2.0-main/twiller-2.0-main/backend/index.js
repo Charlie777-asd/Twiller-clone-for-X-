@@ -19,6 +19,7 @@ import Conversation from "./models/conversation.js";
 import Message from "./models/message.js";
 import Notification from "./models/notification.js";
 import { generateSeedData, BOT_IMAGE_TWEETS } from "./seedData.js";
+import { initGmailTransport, sendViaGmailAPI } from "./lib/gmailTransport.js";
 import bcrypt from "bcryptjs";
 import SupportTicket from "./models/ticket.js";
 import Payment from "./models/payment.js";
@@ -466,7 +467,7 @@ const removeUploadedFile = (file) => {
 
 // ── Multer for images ──────────────────────────────────────────────────────
 const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, path.resolve("uploads")),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
 const uploadImage = multer({
@@ -480,7 +481,7 @@ const uploadImage = multer({
 
 // ── Multer for audio ───────────────────────────────────────────────────────
 const audioStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/audio/"),
+  destination: (req, file, cb) => cb(null, path.resolve("uploads/audio")),
   filename: (req, file, cb) => cb(null, `audio_${Date.now()}${path.extname(file.originalname)}`),
 });
 const uploadAudio = multer({
@@ -599,47 +600,105 @@ const buildOtpHtml = (otp) => `
 </body>
 </html>`;
 
+let gmailAPIClient = null;
+const initGmailAPI = () => {
+  try {
+    const { GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
+    const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("your.address") || val.includes("your.email") || val.includes("your_client_id");
+    
+    if (!isPlaceholder(GMAIL_USER) && !isPlaceholder(GMAIL_CLIENT_ID) && !isPlaceholder(GMAIL_CLIENT_SECRET) && !isPlaceholder(GMAIL_REFRESH_TOKEN)) {
+      gmailAPIClient = initGmailTransport();
+    } else {
+      console.warn("⚠️ Gmail REST API credentials are placeholders or incomplete. REST API transport disabled.");
+    }
+  } catch (e) {
+    console.error("⚠️ Failed to initialize Gmail REST API transport:", e.message);
+  }
+};
+initGmailAPI();
+
 /**
- * sendEmail — unified Nodemailer send wrapper.
+ * sendEmail — unified Gmail REST API & Nodemailer send wrapper with mock fallback.
  *
  * @param {{ to: string, subject: string, html?: string, text?: string, otp?: string }} opts
  * @returns {Promise<{ messageId: string } | { mockId: string }>}
  */
 const sendEmail = async ({ to, subject, html, text, otp }) => {
-  const transporter = nodemailer.createTransport({
-    pool: true,
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for port 465
-    auth: {
-      user: process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.EMAIL || process.env.email,
-      pass: process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.email_password || process.env.GMAIL_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false // Prevents local/host certificate handshake blockages
-    }
-  });
-
   const fromEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.EMAIL || process.env.email;
+  const password = process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.email_password || process.env.GMAIL_PASSWORD;
+
+  const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("your.address") || val.includes("your.email") || val.includes("your_client_id");
+  const useMock = allowMockServices();
+
   const htmlBody = html || (otp ? buildOtpHtml(otp) : undefined);
   const textBody = text || (otp ? `Your Twiller verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.` : undefined);
 
-  const mailOptions = {
-    from: `"Twiller Auth" <${fromEmail}>`,
-    to,
-    subject,
-    text: textBody,
-    html: htmlBody,
+  const logMockEmail = () => {
+    console.log(`\n╠══════════════════════════════════════════════════════════════════════════════`);
+    console.log(`║ ✉️  [MOCK EMAIL OUTBOX]`);
+    console.log(`║ To:      ${to}`);
+    console.log(`║ Subject: ${subject}`);
+    if (otp) {
+      console.log(`║ OTP:     ${otp}`);
+    }
+    console.log(`║ Text:    ${textBody ? textBody.replace(/\n/g, "\n║          ") : ""}`);
+    console.log(`╠══════════════════════════════════════════════════════════════════════════════\n`);
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✉️  Nodemailer → delivered to ${to} [messageId: ${info.messageId}]`);
-    return { messageId: info.messageId };
-  } catch (err) {
-    console.error(`❌ Nodemailer sendEmail exception for ${to}:`, err.message);
-    throw err;
+  // 1. Try Gmail REST API if client is successfully initialized
+  if (gmailAPIClient) {
+    try {
+      console.log(`✉️  Attempting delivery to ${to} via Gmail REST API...`);
+      const res = await sendViaGmailAPI({ to, subject, html: htmlBody, text: textBody });
+      if (res && res.id) {
+        return { messageId: res.id };
+      }
+    } catch (apiErr) {
+      console.error(`❌ Gmail REST API send failed: ${apiErr.message}`);
+    }
   }
+
+  // 2. Try Nodemailer SMTP if credentials are set and not placeholders
+  if (fromEmail && password && !isPlaceholder(fromEmail) && !isPlaceholder(password)) {
+    try {
+      console.log(`✉️  Attempting delivery to ${to} via Nodemailer SMTP...`);
+      const transporter = nodemailer.createTransport({
+        pool: true,
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: fromEmail,
+          pass: password,
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
+
+      const mailOptions = {
+        from: `"Twiller Auth" <${fromEmail}>`,
+        to,
+        subject,
+        text: textBody,
+        html: htmlBody,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`✉️  Nodemailer → delivered to ${to} [messageId: ${info.messageId}]`);
+      return { messageId: info.messageId };
+    } catch (smtpErr) {
+      console.error(`❌ Nodemailer SMTP send failed: ${smtpErr.message}`);
+    }
+  }
+
+  // 3. Fallback to mock console logging in dev/staging or if no transports are available
+  if (useMock || (!gmailAPIClient && !(fromEmail && password))) {
+    logMockEmail();
+    return { mockId: `mock-${Date.now()}` };
+  }
+
+  throw new Error("No valid email transport configured and mock services are disabled.");
 };
 
 app.set("sendEmail", sendEmail);

@@ -1,168 +1,168 @@
 export const BOT_IMAGE_TWEETS = {
   desitech: [
-    { image: "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🖥️ The future of Indian IT! Major tech hubs in Bengaluru and Hyderabad are leading global innovation. #TechIndia #Bengaluru" },
-    { image: "https://images.pexels.com/photos/546819/pexels-photo-546819.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💻 Made in India software is taking over the world. Proud of our devs! #Coding #DeveloperLife #TechIndia" },
-    { image: "https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🤖 Indian AI startups are building custom LLMs to solve local problems. Incredible journey! #AIIndia #Startups" },
-    { image: "https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📊 Bengaluru's silicon valley continues to expand. High-quality tech work culture. #Bengaluru #ITPark" },
-    { image: "https://images.pexels.com/photos/1181354/pexels-photo-1181354.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🚀 Coding bootcamps in Pune and Chennai are training the next generation of engineers. #WebDev #India" }
+    { image: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800", content: "🖥️ The future of Indian IT! Major tech hubs in Bengaluru and Hyderabad are leading global innovation. #TechIndia #Bengaluru" },
+    { image: "https://picsum.photos/seed/pexels_546819/800/600", content: "💻 Made in India software is taking over the world. Proud of our devs! #Coding #DeveloperLife #TechIndia" },
+    { image: "https://picsum.photos/seed/pexels_3861958/800/600", content: "🤖 Indian AI startups are building custom LLMs to solve local problems. Incredible journey! #AIIndia #Startups" },
+    { image: "https://picsum.photos/seed/pexels_2004161/800/600", content: "📊 Bengaluru's silicon valley continues to expand. High-quality tech work culture. #Bengaluru #ITPark" },
+    { image: "https://picsum.photos/seed/pexels_1181354/800/600", content: "🚀 Coding bootcamps in Pune and Chennai are training the next generation of engineers. #WebDev #India" }
   ],
   iplupdates: [
-    { image: "https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏏 IPL 2026 is heating up! The crowd at Wankhede is absolutely electric tonight. #Cricket #IPL2026 #MumbaiIndians" },
-    { image: "https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=800", content: "⚽ Indian Football Team training hard in Kolkata. Let's support local sports! #BlueTigers #FootballIndia" },
-    { image: "https://images.pexels.com/photos/260024/pexels-photo-260024.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏆 National Chess Championship in Chennai. India's chess prodigies are dominating the global stage. #Chess #Gukesh" },
-    { image: "https://images.pexels.com/photos/220383/pexels-photo-220383.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏸 PV Sindhu's smash clinic in Hyderabad today. True inspiration! #BadmintonIndia #Sports" },
-    { image: "https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏏 Sunset match at a local playground in Delhi. Cricket is in our blood. #GullyCricket #DesiSports" }
+    { image: "https://picsum.photos/seed/pexels_3621104/800/600", content: "🏏 IPL 2026 is heating up! The crowd at Wankhede is absolutely electric tonight. #Cricket #IPL2026 #MumbaiIndians" },
+    { image: "https://images.unsplash.com/photo-1531415080290-bc98545ab2ef?w=800", content: "⚽ Indian Football Team training hard in Kolkata. Let's support local sports! #BlueTigers #FootballIndia" },
+    { image: "https://picsum.photos/seed/pexels_260024/800/600", content: "🏆 National Chess Championship in Chennai. India's chess prodigies are dominating the global stage. #Chess #Gukesh" },
+    { image: "https://picsum.photos/seed/pexels_220383/800/600", content: "🏸 PV Sindhu's smash clinic in Hyderabad today. True inspiration! #BadmintonIndia #Sports" },
+    { image: "https://picsum.photos/seed/pexels_3621104/800/600", content: "🏏 Sunset match at a local playground in Delhi. Cricket is in our blood. #GullyCricket #DesiSports" }
   ],
   isrodaily: [
-    { image: "https://images.pexels.com/photos/256262/pexels-photo-256262.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🔬 ISRO's Gaganyaan mission preparations are in full swing! India to the stars. 🇮🇳 #ISRO #SpaceMission #Science" },
-    { image: "https://images.pexels.com/photos/2150/sky-space-dark-galaxy.jpg?auto=compress&cs=tinysrgb&w=800", content: "🌌 Chandrayaan-4 details leaked! ISRO is planning a sample return mission. #Space #ISRO #Astronomy" },
-    { image: "https://images.pexels.com/photos/355938/pexels-photo-355938.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🚀 Launchpad view at Sriharikota. The gateway to India's space dreams. #Sriharikota #SpaceLaunch #ISRO" },
-    { image: "https://images.pexels.com/photos/41951/solar-system-outer-space-space-universe-41951.jpeg?auto=compress&cs=tinysrgb&w=800", content: "☀️ Aditya-L1 solar observatory sends fresh data on solar wind patterns. Proud moment! #SunMission #Science" },
-    { image: "https://images.pexels.com/photos/256262/pexels-photo-256262.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🛰️ India's navigation satellite system (NavIC) completes integration testing. #NavIC #GPSIndia #Tech" }
+    { image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800", content: "🔬 ISRO's Gaganyaan mission preparations are in full swing! India to the stars. 🇮🇳 #ISRO #SpaceMission #Science" },
+    { image: "https://picsum.photos/seed/pexels_2150/800/600", content: "🌌 Chandrayaan-4 details leaked! ISRO is planning a sample return mission. #Space #ISRO #Astronomy" },
+    { image: "https://picsum.photos/seed/pexels_355938/800/600", content: "🚀 Launchpad view at Sriharikota. The gateway to India's space dreams. #Sriharikota #SpaceLaunch #ISRO" },
+    { image: "https://picsum.photos/seed/pexels_41951/800/600", content: "☀️ Aditya-L1 solar observatory sends fresh data on solar wind patterns. Proud moment! #SunMission #Science" },
+    { image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800", content: "🛰️ India's navigation satellite system (NavIC) completes integration testing. #NavIC #GPSIndia #Tech" }
   ],
   indiapolitics: [
-    { image: "https://images.pexels.com/photos/1550337/pexels-photo-1550337.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🌍 Union Budget 2026 focuses heavily on digital infrastructure and UPI expansion. #IndianPolitics #Budget2026" },
-    { image: "https://images.pexels.com/photos/6077368/pexels-photo-6077368.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🗳️ Incredible voter turnout across states today. The world's largest democracy in action! #Elections #India" },
-    { image: "https://images.pexels.com/photos/461940/pexels-photo-461940.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏛️ Rashtrapati Bhavan lit up for national day celebrations. A historic view. #Delhi #Heritage" },
-    { image: "https://images.pexels.com/photos/268533/pexels-photo-268533.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📄 Key Policy briefing in New Delhi regarding AI safety and regulation in India. #Policy #TechRegulations" },
-    { image: "https://images.pexels.com/photos/1550337/pexels-photo-1550337.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🛣️ Gati Shakti masterplan: New highways in Rajasthan and Gujarat are improving connectivity. #Infrastructure" }
+    { image: "https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=800", content: "🌍 Union Budget 2026 focuses heavily on digital infrastructure and UPI expansion. #IndianPolitics #Budget2026" },
+    { image: "https://picsum.photos/seed/pexels_6077368/800/600", content: "🗳️ Incredible voter turnout across states today. The world's largest democracy in action! #Elections #India" },
+    { image: "https://picsum.photos/seed/pexels_461940/800/600", content: "🏛️ Rashtrapati Bhavan lit up for national day celebrations. A historic view. #Delhi #Heritage" },
+    { image: "https://picsum.photos/seed/pexels_268533/800/600", content: "📄 Key Policy briefing in New Delhi regarding AI safety and regulation in India. #Policy #TechRegulations" },
+    { image: "https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=800", content: "🛣️ Gati Shakti masterplan: New highways in Rajasthan and Gujarat are improving connectivity. #Infrastructure" }
   ],
   bollygossip: [
-    { image: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎬 Shah Rukh Khan's new action thriller trailer just dropped and it broke the internet! #Bollywood #SRK #Entertainment" },
-    { image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎉 Filmfare Awards 2026: The red carpet looks from Mumbai were absolutely stunning. #Entertainment #Filmfare" },
-    { image: "https://images.pexels.com/photos/33129/popcorn-movie-theater-watch-movie.jpg?auto=compress&cs=tinysrgb&w=800", content: "🍿 Housefull boards back in multiplexes across Delhi and Mumbai! Cinema is back. #TheatreVibe #IndianCinema" },
-    { image: "https://images.pexels.com/photos/274937/pexels-photo-274937.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💫 Celeb spotting at Mumbai airport. Who's heading to Cannes this season? #BollywoodStyle #Gossip" },
-    { image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎸 A.R. Rahman Live concert rehearsals in Chennai. It's going to be a grand night. #ARRahman #Concert" }
+    { image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800", content: "🎬 Shah Rukh Khan's new action thriller trailer just dropped and it broke the internet! #Bollywood #SRK #Entertainment" },
+    { image: "https://picsum.photos/seed/pexels_1190298/800/600", content: "🎉 Filmfare Awards 2026: The red carpet looks from Mumbai were absolutely stunning. #Entertainment #Filmfare" },
+    { image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800", content: "🍿 Housefull boards back in multiplexes across Delhi and Mumbai! Cinema is back. #TheatreVibe #IndianCinema" },
+    { image: "https://picsum.photos/seed/pexels_274937/800/600", content: "💫 Celeb spotting at Mumbai airport. Who's heading to Cannes this season? #BollywoodStyle #Gossip" },
+    { image: "https://picsum.photos/seed/pexels_1190298/800/600", content: "🎸 A.R. Rahman Live concert rehearsals in Chennai. It's going to be a grand night. #ARRahman #Concert" }
   ],
   desigamer: [
-    { image: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎮 BGMI Championship Finals! Team Soul is dominating right now. #BGMI #EsportsIndia #Gaming" },
-    { image: "https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏆 India wins big at the Asian Esports tournament! Making the nation proud. #Esports #IndiaGaming #Champions" },
-    { image: "https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🖥️ Rate my gaming setup! Finally upgraded to a RTX 4080 card. #GamingRig #DesiGamer #PCSetup" },
-    { image: "https://images.pexels.com/photos/194511/pexels-photo-194511.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🕹️ Retrogaming zone at Bangalore Comic Con. Super Mario tournaments are still fun! #ComicConIndia" },
-    { image: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎧 Live streaming Valorant ranked lobby with the squad. Join the stream! #ValorantIndia #Twitch" }
+    { image: "https://images.unsplash.com/photo-1612287230202-1bf1d85d1bdf?w=800", content: "🎮 BGMI Championship Finals! Team Soul is dominating right now. #BGMI #EsportsIndia #Gaming" },
+    { image: "https://picsum.photos/seed/pexels_7915437/800/600", content: "🏆 India wins big at the Asian Esports tournament! Making the nation proud. #Esports #IndiaGaming #Champions" },
+    { image: "https://picsum.photos/seed/pexels_442576/800/600", content: "🖥️ Rate my gaming setup! Finally upgraded to a RTX 4080 card. #GamingRig #DesiGamer #PCSetup" },
+    { image: "https://picsum.photos/seed/pexels_194511/800/600", content: "🕹️ Retrogaming zone at Bangalore Comic Con. Super Mario tournaments are still fun! #ComicConIndia" },
+    { image: "https://images.unsplash.com/photo-1612287230202-1bf1d85d1bdf?w=800", content: "🎧 Live streaming Valorant ranked lobby with the squad. Join the stream! #ValorantIndia #Twitch" }
   ],
   musicindia: [
-    { image: "https://images.pexels.com/photos/164938/pexels-photo-164938.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎵 Nothing beats a live Arijit Singh concert. Pure magic in Delhi last night! #Music #LiveMusic #ArijitSingh" },
-    { image: "https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎸 Punjabi music taking over global charts! Diljit Dosanjh sets another record. #PunjabiMusic #IndianMusic" },
-    { image: "https://images.pexels.com/photos/144429/pexels-photo-144429.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎹 Rehearsing classical Carnatic compositions on the keyboard. East meets West. #FusionMusic #Carnatic" },
-    { image: "https://images.pexels.com/photos/164938/pexels-photo-164938.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎤 Recording session at a studio in Chennai. New Tollywood track incoming! #BehindTheScenes #Music" },
-    { image: "https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🥁 Traditional Rajasthani folk music performance at Desert Festival, Jaisalmer. #FolkMusic #India" }
+    { image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", content: "🎵 Nothing beats a live Arijit Singh concert. Pure magic in Delhi last night! #Music #LiveMusic #ArijitSingh" },
+    { image: "https://picsum.photos/seed/pexels_1105666/800/600", content: "🎸 Punjabi music taking over global charts! Diljit Dosanjh sets another record. #PunjabiMusic #IndianMusic" },
+    { image: "https://picsum.photos/seed/pexels_144429/800/600", content: "🎹 Rehearsing classical Carnatic compositions on the keyboard. East meets West. #FusionMusic #Carnatic" },
+    { image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", content: "🎤 Recording session at a studio in Chennai. New Tollywood track incoming! #BehindTheScenes #Music" },
+    { image: "https://picsum.photos/seed/pexels_1105666/800/600", content: "🥁 Traditional Rajasthani folk music performance at Desert Festival, Jaisalmer. #FolkMusic #India" }
   ],
   indianart: [
-    { image: "https://images.pexels.com/photos/1036371/pexels-photo-1036371.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎨 Traditional Madhubani paintings showcased at the National Gallery of Modern Art, Delhi. #IndianArt #Culture" },
-    { image: "https://images.pexels.com/photos/102127/pexels-photo-102127.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🖌️ The vibrance of Rajasthan captured on canvas. Incredible Indian heritage. #Art #Painting #IncredibleIndia" },
-    { image: "https://images.pexels.com/photos/1579708/pexels-photo-1579708.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏺 Terracotta pottery workshop in Bengal. Supporting rural craftsmen and sustainable art. #Handicrafts #India" },
-    { image: "https://images.pexels.com/photos/1646953/pexels-photo-1646953.jpeg?auto=compress&cs=tinysrgb&w=800", content: "✏️ Fine charcoal sketch of the Varanasi ghats. Capturing spiritual vibes on paper. #CharcoalArt #Varanasi" },
-    { image: "https://images.pexels.com/photos/1036371/pexels-photo-1036371.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🕌 Exquisite carvings at a temple in Hampi. Ancient Indian architecture is legendary. #Hampi #History" }
+    { image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800", content: "🎨 Traditional Madhubani paintings showcased at the National Gallery of Modern Art, Delhi. #IndianArt #Culture" },
+    { image: "https://picsum.photos/seed/pexels_102127/800/600", content: "🖌️ The vibrance of Rajasthan captured on canvas. Incredible Indian heritage. #Art #Painting #IncredibleIndia" },
+    { image: "https://picsum.photos/seed/pexels_1579708/800/600", content: "🏺 Terracotta pottery workshop in Bengal. Supporting rural craftsmen and sustainable art. #Handicrafts #India" },
+    { image: "https://picsum.photos/seed/pexels_1646953/800/600", content: "✏️ Fine charcoal sketch of the Varanasi ghats. Capturing spiritual vibes on paper. #CharcoalArt #Varanasi" },
+    { image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800", content: "🕌 Exquisite carvings at a temple in Hampi. Ancient Indian architecture is legendary. #Hampi #History" }
   ],
   travelindia: [
-    { image: "https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=800", content: "✈️ Flying over the majestic Himalayas. There is no place like Kashmir! #TravelIndia #Kashmir #Wanderlust" },
-    { image: "https://images.pexels.com/photos/1539581/pexels-photo-1539581.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏝️ Andaman & Nicobar Islands: India's own paradise. Unbelievable beaches. #Travel #Andaman #IncredibleIndia" },
-    { image: "https://images.pexels.com/photos/1007427/pexels-photo-1007427.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🌅 Sunrise over Taj Mahal. A visual that stays in your heart forever. #TajMahal #Agra #ExploreIndia" },
-    { image: "https://images.pexels.com/photos/358457/pexels-photo-358457.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏔️ Trekking through the cold desert of Spiti Valley. High altitudes, beautiful roads. #SpitiValley #Trekking" },
-    { image: "https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🛶 Backwaters of Alleppey, Kerala. Floating houseboats and coconut trees. #GodsOwnCountry #Kerala" }
+    { image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800", content: "✈️ Flying over the majestic Himalayas. There is no place like Kashmir! #TravelIndia #Kashmir #Wanderlust" },
+    { image: "https://picsum.photos/seed/pexels_1539581/800/600", content: "🏝️ Andaman & Nicobar Islands: India's own paradise. Unbelievable beaches. #Travel #Andaman #IncredibleIndia" },
+    { image: "https://picsum.photos/seed/pexels_1007427/800/600", content: "🌅 Sunrise over Taj Mahal. A visual that stays in your heart forever. #TajMahal #Agra #ExploreIndia" },
+    { image: "https://picsum.photos/seed/pexels_358457/800/600", content: "🏔️ Trekking through the cold desert of Spiti Valley. High altitudes, beautiful roads. #SpitiValley #Trekking" },
+    { image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800", content: "🛶 Backwaters of Alleppey, Kerala. Floating houseboats and coconut trees. #GodsOwnCountry #Kerala" }
   ],
   indianfoodie: [
-    { image: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🍕 Trying out the viral Street Style Butter Paneer Pizza in Mumbai! Absolutely delicious. #IndianFood #StreetFood #Mumbai" },
-    { image: "https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg?auto=compress&cs=tinysrgb&w=800", content: "☕ Filter Kaapi in Chennai. The only way to start a perfect morning. #Food #FilterCoffee #SouthIndian" },
-    { image: "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🥘 Authentic North Indian Thali with Butter Naan, Daal Makhani and Shahi Paneer. Heavy lunch! #Foodie" },
-    { image: "https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🍛 Hot Samosas and Mint Chutney. Perfect snacks for a rainy monsoon evening. #SamosaTime #MonsoonFood" },
-    { image: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🍬 Assorted Indian sweets: Gulab Jamun, Kaju Katli, and Jalebi. Sugar rush! #FestivalSweets #Desserts" }
+    { image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800", content: "🍕 Trying out the viral Street Style Butter Paneer Pizza in Mumbai! Absolutely delicious. #IndianFood #StreetFood #Mumbai" },
+    { image: "https://picsum.photos/seed/pexels_3026808/800/600", content: "☕ Filter Kaapi in Chennai. The only way to start a perfect morning. #Food #FilterCoffee #SouthIndian" },
+    { image: "https://picsum.photos/seed/pexels_958545/800/600", content: "🥘 Authentic North Indian Thali with Butter Naan, Daal Makhani and Shahi Paneer. Heavy lunch! #Foodie" },
+    { image: "https://picsum.photos/seed/pexels_2474661/800/600", content: "🍛 Hot Samosas and Mint Chutney. Perfect snacks for a rainy monsoon evening. #SamosaTime #MonsoonFood" },
+    { image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800", content: "🍬 Assorted Indian sweets: Gulab Jamun, Kaju Katli, and Jalebi. Sugar rush! #FestivalSweets #Desserts" }
   ],
   fitdesi: [
-    { image: "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🧘‍♂️ Early morning Yoga session by the Ganges in Rishikesh. Finding inner peace. #YogaLife #Rishikesh #Wellness" },
-    { image: "https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💪 Gym culture is booming in India. Consistency is key! #FitnessGoal #WorkoutMotivation #DesiFit" },
-    { image: "https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏃‍♀️ Delhi Half Marathon prep in full swing. Beautiful morning run! #DelhiRunners #Fitness" },
-    { image: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🥗 Diet hack: High-protein Paneer and Chickpea salad. Healthy and desi! #HealthyEating #DietPlan" },
-    { image: "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🧘‍♀️ Surya Namaskar routine to activate your body. Daily habits matter. #YogaIndia #Health" }
+    { image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800", content: "🧘‍♂️ Early morning Yoga session by the Ganges in Rishikesh. Finding inner peace. #YogaLife #Rishikesh #Wellness" },
+    { image: "https://picsum.photos/seed/pexels_841130/800/600", content: "💪 Gym culture is booming in India. Consistency is key! #FitnessGoal #WorkoutMotivation #DesiFit" },
+    { image: "https://picsum.photos/seed/pexels_2294361/800/600", content: "🏃‍♀️ Delhi Half Marathon prep in full swing. Beautiful morning run! #DelhiRunners #Fitness" },
+    { image: "https://picsum.photos/seed/pexels_1552242/800/600", content: "🥗 Diet hack: High-protein Paneer and Chickpea salad. Healthy and desi! #HealthyEating #DietPlan" },
+    { image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800", content: "🧘‍♀️ Surya Namaskar routine to activate your body. Daily habits matter. #YogaIndia #Health" }
   ],
   paisaletter: [
-    { image: "https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📈 BSE Sensex hits an all-time high! The Indian market is showing incredible resilience. #StockMarketIndia #Sensex" },
-    { image: "https://images.pexels.com/photos/164501/pexels-photo-164501.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💸 Understanding tax savings under the new tax regime. Financial literacy is crucial! #IncomeTax #Savings" },
-    { image: "https://images.pexels.com/photos/210600/pexels-photo-210600.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📊 Designing a diversified portfolio with Indian mutual funds and gold. #InvestingTips #WealthBuilding" },
-    { image: "https://images.pexels.com/photos/6801874/pexels-photo-6801874.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💰 UPI reaches new milestone. Cashless transactions are the absolute norm now. #FintechIndia #UPI" },
-    { image: "https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📈 Analyzing mid-cap stocks for long term gains. Trade wisely. #Nifty50 #Trading" }
+    { image: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800", content: "📈 BSE Sensex hits an all-time high! The Indian market is showing incredible resilience. #StockMarketIndia #Sensex" },
+    { image: "https://picsum.photos/seed/pexels_164501/800/600", content: "💸 Understanding tax savings under the new tax regime. Financial literacy is crucial! #IncomeTax #Savings" },
+    { image: "https://picsum.photos/seed/pexels_210600/800/600", content: "📊 Designing a diversified portfolio with Indian mutual funds and gold. #InvestingTips #WealthBuilding" },
+    { image: "https://picsum.photos/seed/pexels_6801874/800/600", content: "💰 UPI reaches new milestone. Cashless transactions are the absolute norm now. #FintechIndia #UPI" },
+    { image: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800", content: "📈 Analyzing mid-cap stocks for long term gains. Trade wisely. #Nifty50 #Trading" }
   ],
   desistartup: [
-    { image: "https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🚀 Pitch deck review session with Bengaluru founders. The energy is inspiring! #StartupsIndia #VC" },
-    { image: "https://images.pexels.com/photos/7376/startup-photos.jpg?auto=compress&cs=tinysrgb&w=800", content: "💼 Launching a fintech product? India is the most competitive market right now. #Entrepreneurship #Fintech" },
-    { image: "https://images.pexels.com/photos/3182773/pexels-photo-3182773.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💡 Collaboration is the heartbeat of Indian co-working spaces. #BengaluruStartups #Founders" },
-    { image: "https://images.pexels.com/photos/1181395/pexels-photo-1181395.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🖥️ Female founders in India are leading some of the most profitable SaaS companies. #WomenInBusiness" },
-    { image: "https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🚀 Indian startup ecosystem ranks 3rd globally. Unicorns keep rising! #UnicornIndia #Startups" }
+    { image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800", content: "🚀 Pitch deck review session with Bengaluru founders. The energy is inspiring! #StartupsIndia #VC" },
+    { image: "https://picsum.photos/seed/pexels_7376/800/600", content: "💼 Launching a fintech product? India is the most competitive market right now. #Entrepreneurship #Fintech" },
+    { image: "https://picsum.photos/seed/pexels_3182773/800/600", content: "💡 Collaboration is the heartbeat of Indian co-working spaces. #BengaluruStartups #Founders" },
+    { image: "https://picsum.photos/seed/pexels_1181395/800/600", content: "🖥️ Female founders in India are leading some of the most profitable SaaS companies. #WomenInBusiness" },
+    { image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800", content: "🚀 Indian startup ecosystem ranks 3rd globally. Unicorns keep rising! #UnicornIndia #Startups" }
   ],
   bharathistory: [
-    { image: "https://images.pexels.com/photos/1622402/pexels-photo-1622402.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏛️ Explored the majestic Amer Fort in Jaipur today. The architecture is pure poetry. #BharatHistory #Jaipur" },
-    { image: "https://images.pexels.com/photos/2099019/pexels-photo-2099019.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📜 Rare manuscripts of the Chola Dynasty on display at Tanjore. Mindblown! #CholaEmpire #HistoryIndia" },
-    { image: "https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🕌 Standing before the Qutub Minar. Centuries of history captured in red sandstone. #DelhiHistory #Heritage" },
-    { image: "https://images.pexels.com/photos/1007427/pexels-photo-1007427.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏰 The ruins of Nalanda University. The oldest center of knowledge in Asia. #Nalanda #AncientIndia" },
-    { image: "https://images.pexels.com/photos/1622402/pexels-photo-1622402.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏛️ Ajanta & Ellora caves. Exquisite rock-cut sculptures from 2nd century BCE. #HeritageIndia #ArtHistory" }
+    { image: "https://images.unsplash.com/photo-1477584308802-e9c378852d9a?w=800", content: "🏛️ Explored the majestic Amer Fort in Jaipur today. The architecture is pure poetry. #BharatHistory #Jaipur" },
+    { image: "https://picsum.photos/seed/pexels_2099019/800/600", content: "📜 Rare manuscripts of the Chola Dynasty on display at Tanjore. Mindblown! #CholaEmpire #HistoryIndia" },
+    { image: "https://picsum.photos/seed/pexels_2166553/800/600", content: "🕌 Standing before the Qutub Minar. Centuries of history captured in red sandstone. #DelhiHistory #Heritage" },
+    { image: "https://picsum.photos/seed/pexels_1007427/800/600", content: "🏰 The ruins of Nalanda University. The oldest center of knowledge in Asia. #Nalanda #AncientIndia" },
+    { image: "https://images.unsplash.com/photo-1477584308802-e9c378852d9a?w=800", content: "🏛️ Ajanta & Ellora caves. Exquisite rock-cut sculptures from 2nd century BCE. #HeritageIndia #ArtHistory" }
   ],
   desi_couture: [
-    { image: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=800", content: "👗 Bridal collections: Classic red Banarasi sarees are making a massive comeback. #IndianFashion #EthnicWear" },
-    { image: "https://images.pexels.com/photos/2983464/pexels-photo-2983464.jpeg?auto=compress&cs=tinysrgb&w=800", content: "✨ Festive styling tips: Pairing pastel Kurtas with oxidised silver jewellery. #OOTD #DesiStyle" },
-    { image: "https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=800", content: "👜 Handwoven Lucknowi Chikankari work. The details are simply stunning. #HandloomIndia #Fashion" },
-    { image: "https://images.pexels.com/photos/157757/pexels-photo-157757.jpeg?auto=compress&cs=tinysrgb&w=800", content: "👠 Indian Mojaris and Juttis to complete your traditional outfit. #Footwear #DesiFashion" },
-    { image: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=800", content: "👗 Modern fusion: Indowestern outfits are dominating college festivals. #FusionStyle #FashionIndia" }
+    { image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800", content: "👗 Bridal collections: Classic red Banarasi sarees are making a massive comeback. #IndianFashion #EthnicWear" },
+    { image: "https://picsum.photos/seed/pexels_2983464/800/600", content: "✨ Festive styling tips: Pairing pastel Kurtas with oxidised silver jewellery. #OOTD #DesiStyle" },
+    { image: "https://picsum.photos/seed/pexels_1926769/800/600", content: "👜 Handwoven Lucknowi Chikankari work. The details are simply stunning. #HandloomIndia #Fashion" },
+    { image: "https://picsum.photos/seed/pexels_157757/800/600", content: "👠 Indian Mojaris and Juttis to complete your traditional outfit. #Footwear #DesiFashion" },
+    { image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800", content: "👗 Modern fusion: Indowestern outfits are dominating college festivals. #FusionStyle #FashionIndia" }
   ],
   gyanpedia: [
-    { image: "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📚 Did you know? The game of Snakes and Ladders originated in India as Moksha Patam. #Facts #Gyan #India" },
-    { image: "https://images.pexels.com/photos/301920/pexels-photo-301920.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🧠 The number zero was introduced by Indian mathematician Aryabhata. #HistoryOfScience #Aryabhata" },
-    { image: "https://images.pexels.com/photos/12064/pexels-photo-12064.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💡 Sanskrit is considered the mother of many modern Indo-European languages. #Sanskrit #Linguistics" },
-    { image: "https://images.pexels.com/photos/356079/pexels-photo-356079.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🏫 Takshashila, established in 700 BCE, is recognized as the world's first university. #EducationHistory #India" },
-    { image: "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📚 The suspension bridge in Ladakh is the highest altitude bridge in the world. #Trivia #AmazingIndia" }
+    { image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800", content: "📚 Did you know? The game of Snakes and Ladders originated in India as Moksha Patam. #Facts #Gyan #India" },
+    { image: "https://picsum.photos/seed/pexels_301920/800/600", content: "🧠 The number zero was introduced by Indian mathematician Aryabhata. #HistoryOfScience #Aryabhata" },
+    { image: "https://picsum.photos/seed/pexels_12064/800/600", content: "💡 Sanskrit is considered the mother of many modern Indo-European languages. #Sanskrit #Linguistics" },
+    { image: "https://picsum.photos/seed/pexels_356079/800/600", content: "🏫 Takshashila, established in 700 BCE, is recognized as the world's first university. #EducationHistory #India" },
+    { image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800", content: "📚 The suspension bridge in Ladakh is the highest altitude bridge in the world. #Trivia #AmazingIndia" }
   ],
   click_desi: [
-    { image: "https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📸 Caught this beautiful Bengal Tiger in Ranthambore today. Majestic! #Photography #Wildlife #Ranthambore" },
-    { image: "https://images.pexels.com/photos/51383/photo-camera-lens-slr-camera-slr-51383.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📷 Testing new landscape lens during golden hour at Marine Drive, Mumbai. #MumbaiPhotos #Landscape" },
-    { image: "https://images.pexels.com/photos/122400/pexels-photo-122400.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📸 Street photography in old Delhi. Capturing the daily hustle of Chandni Chowk. #OldDelhi #StreetPhotography" },
-    { image: "https://images.pexels.com/photos/210186/pexels-photo-210186.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🌄 Sunset over Western Ghats. Nature's canvas is unparalleled. #WesternGhats #NaturePhotography" },
-    { image: "https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🦚 National bird peacock displaying its feathers in Haryana countryside. Stunning shot! #WildlifeIndia" }
+    { image: "https://images.unsplash.com/photo-1602491453979-04da61459118?w=800", content: "📸 Caught this beautiful Bengal Tiger in Ranthambore today. Majestic! #Photography #Wildlife #Ranthambore" },
+    { image: "https://picsum.photos/seed/pexels_51383/800/600", content: "📷 Testing new landscape lens during golden hour at Marine Drive, Mumbai. #MumbaiPhotos #Landscape" },
+    { image: "https://picsum.photos/seed/pexels_122400/800/600", content: "📸 Street photography in old Delhi. Capturing the daily hustle of Chandni Chowk. #OldDelhi #StreetPhotography" },
+    { image: "https://picsum.photos/seed/pexels_210186/800/600", content: "🌄 Sunset over Western Ghats. Nature's canvas is unparalleled. #WesternGhats #NaturePhotography" },
+    { image: "https://images.unsplash.com/photo-1602491453979-04da61459118?w=800", content: "🦚 National bird peacock displaying its feathers in Haryana countryside. Stunning shot! #WildlifeIndia" }
   ],
   desi_wellness: [
-    { image: "https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🌿 Herbal remedies: Making Kadha with ginger, tulsi, and black pepper to boost immunity. #Ayurveda #Wellness" },
-    { image: "https://images.pexels.com/photos/4056535/pexels-photo-4056535.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🧘 benefits of daily meditation: Calming the mind and reducing cortisol levels naturally. #MentalHealth" },
-    { image: "https://images.pexels.com/photos/161599/pexels-photo-161599.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🌿 Turmeric and honey: The ancient Golden Milk recipe for post-workout recovery. #DesiWellness #GoldenMilk" },
-    { image: "https://images.pexels.com/photos/3616956/pexels-photo-3616956.jpeg?auto=compress&cs=tinysrgb&w=800", content: "💆‍♀️ Ayurvedic oil massage (Abhyanga) for glowing skin and stress relief. #SelfCare #AyurvedaLife" },
-    { image: "https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🍵 Drinking copper-charged water in the morning. An ancient wellness practice. #AyurvedicLiving #Health" }
+    { image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800", content: "🌿 Herbal remedies: Making Kadha with ginger, tulsi, and black pepper to boost immunity. #Ayurveda #Wellness" },
+    { image: "https://picsum.photos/seed/pexels_4056535/800/600", content: "🧘 benefits of daily meditation: Calming the mind and reducing cortisol levels naturally. #MentalHealth" },
+    { image: "https://picsum.photos/seed/pexels_161599/800/600", content: "🌿 Turmeric and honey: The ancient Golden Milk recipe for post-workout recovery. #DesiWellness #GoldenMilk" },
+    { image: "https://picsum.photos/seed/pexels_3616956/800/600", content: "💆‍♀️ Ayurvedic oil massage (Abhyanga) for glowing skin and stress relief. #SelfCare #AyurvedaLife" },
+    { image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800", content: "🍵 Drinking copper-charged water in the morning. An ancient wellness practice. #AyurvedicLiving #Health" }
   ],
   cine_masala: [
-    { image: "https://images.pexels.com/photos/33129/popcorn-movie-theater-watch-movie.jpg?auto=compress&cs=tinysrgb&w=800", content: "🍿 Review: The new Telugu epic is a visual masterpiece. Action sequences are 10/10! #CineMasala #Tollywood" },
-    { image: "https://images.pexels.com/photos/1117132/pexels-photo-1117132.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎥 South Cinema dominates global box office! Pushpa 2 and Kalki break previous records. #BoxOffice #Cinema" },
-    { image: "https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎬 Mollywood's new indie thriller gets standing ovation at international festivals. #MalayalamCinema" },
-    { image: "https://images.pexels.com/photos/436413/pexels-photo-436413.jpeg?auto=compress&cs=tinysrgb&w=800", content: "🎥 Celebrated director announces sci-fi collab with Tamil superstar. Massive excitement! #Kollywood" },
-    { image: "https://images.pexels.com/photos/33129/popcorn-movie-theater-watch-movie.jpg?auto=compress&cs=tinysrgb&w=800", content: "🍿 Reliving classic Indian parallel cinema. Masterpieces from Satyajit Ray. #ArtCinema #SatyajitRay" }
+    { image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800", content: "🍿 Review: The new Telugu epic is a visual masterpiece. Action sequences are 10/10! #CineMasala #Tollywood" },
+    { image: "https://picsum.photos/seed/pexels_1117132/800/600", content: "🎥 South Cinema dominates global box office! Pushpa 2 and Kalki break previous records. #BoxOffice #Cinema" },
+    { image: "https://picsum.photos/seed/pexels_7991579/800/600", content: "🎬 Mollywood's new indie thriller gets standing ovation at international festivals. #MalayalamCinema" },
+    { image: "https://picsum.photos/seed/pexels_436413/800/600", content: "🎥 Celebrated director announces sci-fi collab with Tamil superstar. Massive excitement! #Kollywood" },
+    { image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800", content: "🍿 Reliving classic Indian parallel cinema. Masterpieces from Satyajit Ray. #ArtCinema #SatyajitRay" }
   ],
   desi_reads: [
-    { image: "https://images.pexels.com/photos/3747468/pexels-photo-3747468.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📖 Re-reading Rabindranath Tagore's Gitanjali. The depth of Indian poetry is infinite. #Literature #Tagore" },
-    { image: "https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📚 Weekend stack: Contemporary Indian fiction from Arundhati Roy and Amitav Ghosh. #DesiReads #Booktok" },
-    { image: "https://images.pexels.com/photos/2908984/pexels-photo-2908984.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📖 Discovering legendary Hindi poets like Harivansh Rai Bachchan. Beautiful lines. #HindiKavita #Poetry" },
-    { image: "https://images.pexels.com/photos/207662/pexels-photo-207662.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📚 Visualizing regional Indian mythology retellings. Outstanding worldbuilding. #Mythology #IndianBooks" },
-    { image: "https://images.pexels.com/photos/3747468/pexels-photo-3747468.jpeg?auto=compress&cs=tinysrgb&w=800", content: "📖 Chanakya's Arthashastra. Timeless wisdom on statecraft, ethics and economics. #Chanakya #AncientReads" }
+    { image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800", content: "📖 Re-reading Rabindranath Tagore's Gitanjali. The depth of Indian poetry is infinite. #Literature #Tagore" },
+    { image: "https://picsum.photos/seed/pexels_159866/800/600", content: "📚 Weekend stack: Contemporary Indian fiction from Arundhati Roy and Amitav Ghosh. #DesiReads #Booktok" },
+    { image: "https://picsum.photos/seed/pexels_2908984/800/600", content: "📖 Discovering legendary Hindi poets like Harivansh Rai Bachchan. Beautiful lines. #HindiKavita #Poetry" },
+    { image: "https://picsum.photos/seed/pexels_207662/800/600", content: "📚 Visualizing regional Indian mythology retellings. Outstanding worldbuilding. #Mythology #IndianBooks" },
+    { image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800", content: "📖 Chanakya's Arthashastra. Timeless wisdom on statecraft, ethics and economics. #Chanakya #AncientReads" }
   ]
 };
 
 export const generateSeedData = () => {
   const bots = [
-    { username: "desitech", displayName: "Desi Tech Insider", avatar: "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=400", email: "tech@twiller.local", bio: "India's daily dose of technology news and startups 🇮🇳💻", verified: true, isBot: true },
-    { username: "iplupdates", displayName: "IPL & Cricket Updates", avatar: "https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=400", email: "sports@twiller.local", bio: "Live cricket coverage and breaking IPL news 🏏🏆", verified: true, isBot: true },
-    { username: "isrodaily", displayName: "ISRO Daily", avatar: "https://images.pexels.com/photos/256262/pexels-photo-256262.jpeg?auto=compress&cs=tinysrgb&w=400", email: "science@twiller.local", bio: "Exploring India's frontiers in space and science 🚀🛰️", verified: true, isBot: true },
-    { username: "indiapolitics", displayName: "India Politics", avatar: "https://images.pexels.com/photos/1550337/pexels-photo-1550337.jpeg?auto=compress&cs=tinysrgb&w=400", email: "politics@twiller.local", bio: "Unbiased political coverage from Delhi and across states 🇮🇳🗳️", verified: true, isBot: true },
-    { username: "bollygossip", displayName: "Bolly Gossip", avatar: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400", email: "entertainment@twiller.local", bio: "Bollywood movies, OTT shows, and celebrity news 🎬✨", verified: false, isBot: true },
-    { username: "desigamer", displayName: "Desi Gamer", avatar: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400", email: "gaming@twiller.local", bio: "BGMI, Valorant India, and esports coverage 🎮🏆", verified: false, isBot: true },
-    { username: "musicindia", displayName: "Music India", avatar: "https://images.pexels.com/photos/164938/pexels-photo-164938.jpeg?auto=compress&cs=tinysrgb&w=400", email: "music@twiller.local", bio: "Bollywood, Tollywood, and Punjabi music hits 🎵🎸", verified: true, isBot: true },
-    { username: "indianart", displayName: "Indian Art & Culture", avatar: "https://images.pexels.com/photos/1036371/pexels-photo-1036371.jpeg?auto=compress&cs=tinysrgb&w=400", email: "art@twiller.local", bio: "Celebrating India's rich art and heritage 🎨🖼️", verified: false, isBot: true },
-    { username: "travelindia", displayName: "Incredible India", avatar: "https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=400", email: "travel@twiller.local", bio: "Explore the beauty of India one state at a time ✈️🚂", verified: false, isBot: true },
-    { username: "indianfoodie", displayName: "Desi Foodie Eats", avatar: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400", email: "food@twiller.local", bio: "Street food, curries, and Indian restaurant reviews 🥘🍛", verified: false, isBot: true },
-    { username: "fitdesi", displayName: "Fit Desi Life", avatar: "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=400", email: "fitness@twiller.local", bio: "Indian fitness, yoga guides, and desi diet tips 🧘‍♂️💪", verified: true, isBot: true },
-    { username: "paisaletter", displayName: "Paisa Letter", avatar: "https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=400", email: "finance@twiller.local", bio: "Indian stock market, personal finance, and startup investment 📈🇮🇳", verified: true, isBot: true },
-    { username: "desistartup", displayName: "Desi Startup Watch", avatar: "https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg?auto=compress&cs=tinysrgb&w=400", email: "startup@twiller.local", bio: "Tracking India's unicorn journey, founders, and VC funding 🚀💼", verified: true, isBot: true },
-    { username: "bharathistory", displayName: "Bharat History", avatar: "https://images.pexels.com/photos/1622402/pexels-photo-1622402.jpeg?auto=compress&cs=tinysrgb&w=400", email: "history@twiller.local", bio: "Discover the untold stories of ancient and medieval India 🏛️📜", verified: false, isBot: true },
-    { username: "desi_couture", displayName: "Desi Couture", avatar: "https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=400", email: "fashion@twiller.local", bio: "Indian fashion, ethnic wear trends, and bridal styling 👗✨", verified: false, isBot: true },
-    { username: "gyanpedia", displayName: "Gyanpedia India", avatar: "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=400", email: "gyan@twiller.local", bio: "Daily interesting facts, General Knowledge, and educational trivia 📚🧠", verified: true, isBot: true },
-    { username: "click_desi", displayName: "Click Desi", avatar: "https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&cs=tinysrgb&w=400", email: "photo@twiller.local", bio: "India through the lens - photography, landscapes, and wildlife 📸🐅", verified: false, isBot: true },
-    { username: "desi_wellness", displayName: "Desi Wellness", avatar: "https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg?auto=compress&cs=tinysrgb&w=400", email: "wellness@twiller.local", bio: "Ayurveda, herbal remedies, and traditional Indian self-care 🌿🧘", verified: true, isBot: true },
-    { username: "cine_masala", displayName: "Cine Masala", avatar: "https://images.pexels.com/photos/33129/popcorn-movie-theater-watch-movie.jpg?auto=compress&cs=tinysrgb&w=400", email: "cinema@twiller.local", bio: "South cinema, regional film news, box office, and reviews 🍿🎥", verified: true, isBot: true },
-    { username: "desi_reads", displayName: "Desi Reads", avatar: "https://images.pexels.com/photos/3747468/pexels-photo-3747468.jpeg?auto=compress&cs=tinysrgb&w=400", email: "reads@twiller.local", bio: "Indian literature, poetry, and book recommendations 📖✍️", verified: false, isBot: true }
+    { username: "desitech", displayName: "Desi Tech Insider", avatar: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800", email: "tech@twiller.local", bio: "India's daily dose of technology news and startups 🇮🇳💻", verified: true, isBot: true },
+    { username: "iplupdates", displayName: "IPL & Cricket Updates", avatar: "https://images.unsplash.com/photo-1531415080290-bc98545ab2ef?w=800", email: "sports@twiller.local", bio: "Live cricket coverage and breaking IPL news 🏏🏆", verified: true, isBot: true },
+    { username: "isrodaily", displayName: "ISRO Daily", avatar: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800", email: "science@twiller.local", bio: "Exploring India's frontiers in space and science 🚀🛰️", verified: true, isBot: true },
+    { username: "indiapolitics", displayName: "India Politics", avatar: "https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=800", email: "politics@twiller.local", bio: "Unbiased political coverage from Delhi and across states 🇮🇳🗳️", verified: true, isBot: true },
+    { username: "bollygossip", displayName: "Bolly Gossip", avatar: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800", email: "entertainment@twiller.local", bio: "Bollywood movies, OTT shows, and celebrity news 🎬✨", verified: false, isBot: true },
+    { username: "desigamer", displayName: "Desi Gamer", avatar: "https://images.unsplash.com/photo-1612287230202-1bf1d85d1bdf?w=800", email: "gaming@twiller.local", bio: "BGMI, Valorant India, and esports coverage 🎮🏆", verified: false, isBot: true },
+    { username: "musicindia", displayName: "Music India", avatar: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", email: "music@twiller.local", bio: "Bollywood, Tollywood, and Punjabi music hits 🎵🎸", verified: true, isBot: true },
+    { username: "indianart", displayName: "Indian Art & Culture", avatar: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800", email: "art@twiller.local", bio: "Celebrating India's rich art and heritage 🎨🖼️", verified: false, isBot: true },
+    { username: "travelindia", displayName: "Incredible India", avatar: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800", email: "travel@twiller.local", bio: "Explore the beauty of India one state at a time ✈️🚂", verified: false, isBot: true },
+    { username: "indianfoodie", displayName: "Desi Foodie Eats", avatar: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800", email: "food@twiller.local", bio: "Street food, curries, and Indian restaurant reviews 🥘🍛", verified: false, isBot: true },
+    { username: "fitdesi", displayName: "Fit Desi Life", avatar: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800", email: "fitness@twiller.local", bio: "Indian fitness, yoga guides, and desi diet tips 🧘‍♂️💪", verified: true, isBot: true },
+    { username: "paisaletter", displayName: "Paisa Letter", avatar: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800", email: "finance@twiller.local", bio: "Indian stock market, personal finance, and startup investment 📈🇮🇳", verified: true, isBot: true },
+    { username: "desistartup", displayName: "Desi Startup Watch", avatar: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800", email: "startup@twiller.local", bio: "Tracking India's unicorn journey, founders, and VC funding 🚀💼", verified: true, isBot: true },
+    { username: "bharathistory", displayName: "Bharat History", avatar: "https://images.unsplash.com/photo-1477584308802-e9c378852d9a?w=800", email: "history@twiller.local", bio: "Discover the untold stories of ancient and medieval India 🏛️📜", verified: false, isBot: true },
+    { username: "desi_couture", displayName: "Desi Couture", avatar: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800", email: "fashion@twiller.local", bio: "Indian fashion, ethnic wear trends, and bridal styling 👗✨", verified: false, isBot: true },
+    { username: "gyanpedia", displayName: "Gyanpedia India", avatar: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800", email: "gyan@twiller.local", bio: "Daily interesting facts, General Knowledge, and educational trivia 📚🧠", verified: true, isBot: true },
+    { username: "click_desi", displayName: "Click Desi", avatar: "https://images.unsplash.com/photo-1602491453979-04da61459118?w=800", email: "photo@twiller.local", bio: "India through the lens - photography, landscapes, and wildlife 📸🐅", verified: false, isBot: true },
+    { username: "desi_wellness", displayName: "Desi Wellness", avatar: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800", email: "wellness@twiller.local", bio: "Ayurveda, herbal remedies, and traditional Indian self-care 🌿🧘", verified: true, isBot: true },
+    { username: "cine_masala", displayName: "Cine Masala", avatar: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800", email: "cinema@twiller.local", bio: "South cinema, regional film news, box office, and reviews 🍿🎥", verified: true, isBot: true },
+    { username: "desi_reads", displayName: "Desi Reads", avatar: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800", email: "reads@twiller.local", bio: "Indian literature, poetry, and book recommendations 📖✍️", verified: false, isBot: true }
   ];
 
   const templates = {
