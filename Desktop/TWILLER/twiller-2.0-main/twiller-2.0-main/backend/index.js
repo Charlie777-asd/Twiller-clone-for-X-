@@ -301,6 +301,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://twiller-clone-for-x-dc27.vercel.app",
   "https://twiller-clone-for-x-dc27-git-main-targaryen1.vercel.app",
+  "https://twiller-clone-for-x.vercel.app",
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -2116,7 +2117,17 @@ app.post("/audio/upload", uploadAudio.single("audio"), async (req, res) => {
     }
 
     audioUploadTokens.delete(uploadToken);
-    const audioUrl = buildPublicUploadUrl(`/uploads/audio/${req.file.filename}`);
+    
+    // Upload local verified file to Cloudinary
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: "video",
+      folder: "twiller_audio"
+    });
+    
+    // Clean up local temp file
+    removeUploadedFile(req.file);
+
+    const audioUrl = uploadResult.secure_url;
     return res.status(200).send({ audioUrl });
   } catch (error) {
     removeUploadedFile(req.file);
