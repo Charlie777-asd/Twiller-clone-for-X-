@@ -51,6 +51,10 @@ export const mediaUrl = (path) => {
     return `https://picsum.photos/seed/pexels_${pexelsId || "fallback"}/800/600`;
   }
 
+  if (typeof path === "string" && /^https?:\/\//i.test(path)) {
+    return path;
+  }
+
   const uploadMatch = path.match(/\/?uploads\/(.+)$/i);
   if (uploadMatch) {
     return buildBackendUrl(`/uploads/${uploadMatch[1]}`);

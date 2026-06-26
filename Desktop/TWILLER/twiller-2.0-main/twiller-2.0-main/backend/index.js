@@ -2233,6 +2233,34 @@ app.post("/post", async (req, res) => {
     if (!req.body.author || !req.body.content?.trim()) {
       return res.status(400).send({ error: "Author and content are required" });
     }
+
+    // ── Duplicate post or media guard ─────────────────────────────────────────
+    const contentCheck = req.body.content?.trim();
+    const imageCheck = req.body.image?.trim();
+    const gifUrlCheck = req.body.gifUrl?.trim();
+    const audioCheck = req.body.audio?.trim();
+
+    const duplicateConditions = [];
+    if (contentCheck) {
+      duplicateConditions.push({ author: req.body.author, content: contentCheck });
+    }
+    if (imageCheck) {
+      duplicateConditions.push({ image: imageCheck });
+    }
+    if (gifUrlCheck) {
+      duplicateConditions.push({ gifUrl: gifUrlCheck });
+    }
+    if (audioCheck) {
+      duplicateConditions.push({ audio: audioCheck });
+    }
+
+    if (duplicateConditions.length > 0) {
+      const existingDuplicate = await Tweet.findOne({ $or: duplicateConditions });
+      if (existingDuplicate) {
+        return res.status(400).send({ error: "Duplicate tweet text or media is not allowed." });
+      }
+    }
+
     // ── Subscription tweet-limit guard ────────────────────────────────────────
     const postingUser = await User.findById(req.body.author);
     if (postingUser && !postingUser.isBot) {

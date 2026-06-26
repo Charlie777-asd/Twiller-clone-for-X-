@@ -679,40 +679,66 @@ export const runBotPost = async () => {
     const dbBots = await User.find({ isBot: true });
     if (!dbBots || dbBots.length === 0) return;
 
-    // Pick a random bot
-    const bot = dbBots[Math.floor(Math.random() * dbBots.length)];
-    const botSpecificTweets = BOT_TWEETS_DATA[bot.username];
-    if (!botSpecificTweets || botSpecificTweets.length === 0) return;
+    // Generate the full interleaved array of 400 tweets
+    const allBotTweets = [];
+    const totalTweetsPerBot = 20;
+    for (let col = 0; col < totalTweetsPerBot; col++) {
+      for (let row = 0; row < dbBots.length; row++) {
+        const bot = dbBots[row];
+        const botSpecificTweets = BOT_TWEETS_DATA[bot.username];
+        if (botSpecificTweets && botSpecificTweets[col]) {
+          const tweetData = botSpecificTweets[col];
+          allBotTweets.push({
+            author: bot._id,
+            content: tweetData.content,
+            image: tweetData.image || null,
+          });
+        }
+      }
+    }
 
-    // Count tweets posted by this bot
-    const botTweetsCount = await Tweet.countDocuments({ author: bot._id });
+    // Find the first tweet in allBotTweets that has NOT been posted yet
+    let nextTweetData = null;
+    for (const tData of allBotTweets) {
+      const exists = await Tweet.findOne({ content: tData.content });
+      if (!exists) {
+        nextTweetData = tData;
+        break;
+      }
+    }
 
-    // Select the next sequential tweet (ensuring wrap-around)
-    const tweetData = botSpecificTweets[botTweetsCount % botSpecificTweets.length];
+    // If all 400 tweets have been posted, stop
+    if (!nextTweetData) {
+      console.log("🤖 [Bot Simulator] All 400 unique bot tweets have been posted. Stopping bot tweeter.");
+      return;
+    }
+
+    const bot = dbBots.find(b => b._id.toString() === nextTweetData.author.toString());
+    if (!bot) return;
 
     // Roll random premium features:
     // 15% chance audio using SoundHelix mock MP3s
     // 20% chance Unsplash/Giphy GIFs (if no audio)
     let audioUrl = null;
     let gifUrl = null;
-    let imageUrl = tweetData.image || null;
+    let imageUrl = nextTweetData.image || null;
 
     const roll = Math.random();
     if (roll < 0.15) {
       // Audio tweet
       const songIndex = Math.floor(Math.random() * 16) + 1;
       audioUrl = `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${songIndex}.mp3`;
-      imageUrl = null; // Audio tweet doesn't have regular image
+      imageUrl = null;
     } else if (roll < 0.15 + 0.20) {
       // GIF tweet
       const gifIndex = Math.floor(Math.random() * SAMPLE_GIFS.length);
       gifUrl = SAMPLE_GIFS[gifIndex]?.url || "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyO/giphy.gif";
-      imageUrl = null; // GIF tweet has gifUrl instead of image
+      imageUrl = null;
     }
 
     const newTweet = new Tweet({
       author: bot._id,
-      content: tweetData.content,
+      content: nextTweetData.content,
       image: imageUrl,
       audio: audioUrl,
       gifUrl: gifUrl,
