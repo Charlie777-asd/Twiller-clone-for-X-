@@ -46,23 +46,23 @@ import crypto from "crypto";
 let _gmailClient = null;
 
 export function initGmailTransport() {
-  const { GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } =
+  const { GOOGLE_EMAIL_USER, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN } =
     process.env;
 
-  if (!GMAIL_USER || !GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
+  if (!GOOGLE_EMAIL_USER || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REFRESH_TOKEN) {
     return null; // caller decides whether to warn/mock
   }
 
   try {
     const oauth2 = new google.auth.OAuth2(
-      GMAIL_CLIENT_ID,
-      GMAIL_CLIENT_SECRET,
+      GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET,
       "https://developers.google.com/oauthplayground" // redirect_uri must match Cloud Console
     );
-    oauth2.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
+    oauth2.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
 
     _gmailClient = google.gmail({ version: "v1", auth: oauth2 });
-    console.log(`✅ Gmail REST API transport initialized for ${GMAIL_USER}`);
+    console.log(`✅ Gmail REST API transport initialized for ${GOOGLE_EMAIL_USER}`);
     return _gmailClient;
   } catch (err) {
     console.error("❌ Gmail REST API transport init failed:", err.message);
@@ -132,10 +132,10 @@ export function buildRawMimeMessage({ from, to, subject, html, text }) {
  */
 export async function sendViaGmailAPI({ to, subject, html, text }) {
   if (!_gmailClient) {
-    throw new Error("Gmail REST API client is not initialized. Check GMAIL_* env vars.");
+    throw new Error("Gmail REST API client is not initialized. Check GOOGLE_* env vars.");
   }
 
-  const from = `"Twiller" <${process.env.GMAIL_USER}>`;
+  const from = `"Twiller" <${process.env.GOOGLE_EMAIL_USER}>`;
   const raw  = buildRawMimeMessage({ from, to, subject, html, text });
 
   try {

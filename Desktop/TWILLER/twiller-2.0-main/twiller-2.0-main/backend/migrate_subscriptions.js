@@ -11,11 +11,13 @@
 
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { getMongoUrl } from "./config/runtime.js";
+
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+const MONGO_URI = getMongoUrl();
 if (!MONGO_URI) {
-  console.error("❌ MONGO_URI not set in environment");
+  console.error("❌ MONGODB_URL not set in environment");
   process.exit(1);
 }
 

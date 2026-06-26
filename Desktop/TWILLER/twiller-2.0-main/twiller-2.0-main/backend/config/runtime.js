@@ -10,7 +10,11 @@ export const isProduction = nodeEnv === "production";
 
 export const getMongoUrl = () => {
   const value = process.env.MONGODB_URL || process.env.MONOGDB_URL || "";
-  return value.trim();
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.includes("<username>") || trimmed.includes("cluster0.mongodb.net")) {
+    return "mongodb://127.0.0.1:27017/twiller";
+  }
+  return trimmed;
 };
 
 export const getPublicServerUrl = (port) => {

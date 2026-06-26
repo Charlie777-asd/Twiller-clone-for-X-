@@ -251,9 +251,13 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
 } else {
   console.warn("⚠️ Twilio credentials are missing. OTP delivery is disabled until they are configured.");
 }
+const normalizePhone = (phone) => {
+  if (!phone) return "";
+  return "+" + phone.replace(/\D/g, "");
+};
 
 const sendSmsOtp = async (phone, otp, customMessage = null) => {
-  const cleanPhone = phone.startsWith('+') ? '+' + phone.slice(1).replace(/\D/g, '') : '+' + phone.replace(/\D/g, '');
+  const cleanPhone = normalizePhone(phone);
   const messageBody = customMessage || `Your Twiller verification code is: ${otp}. It expires in 10 minutes.`;
   const waTo = cleanPhone.startsWith('whatsapp:') ? cleanPhone : `whatsapp:${cleanPhone}`;
   const waFrom = process.env.TWILIO_PHONE_NUMBER || 'whatsapp:+14155238886'; // Sandbox number
@@ -603,10 +607,10 @@ const buildOtpHtml = (otp) => `
 let gmailAPIClient = null;
 const initGmailAPI = () => {
   try {
-    const { GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
+    const { GOOGLE_EMAIL_USER, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN } = process.env;
     const isPlaceholder = (val) => !val || val.includes("your_") || val.includes("your.address") || val.includes("your.email") || val.includes("your_client_id");
     
-    if (!isPlaceholder(GMAIL_USER) && !isPlaceholder(GMAIL_CLIENT_ID) && !isPlaceholder(GMAIL_CLIENT_SECRET) && !isPlaceholder(GMAIL_REFRESH_TOKEN)) {
+    if (!isPlaceholder(GOOGLE_EMAIL_USER) && !isPlaceholder(GOOGLE_CLIENT_ID) && !isPlaceholder(GOOGLE_CLIENT_SECRET) && !isPlaceholder(GOOGLE_REFRESH_TOKEN)) {
       gmailAPIClient = initGmailTransport();
     } else {
       console.warn("⚠️ Gmail REST API credentials are placeholders or incomplete. REST API transport disabled.");
@@ -658,26 +662,30 @@ const sendEmail = async ({ to, subject, html, text, otp }) => {
     }
   }
 
-  // 2. Try Nodemailer SMTP if credentials are set and not placeholders
-  if (fromEmail && password && !isPlaceholder(fromEmail) && !isPlaceholder(password)) {
+  // 2. Try Nodemailer SMTP with OAuth2 if credentials are set and not placeholders
+  const googleUser = process.env.GOOGLE_EMAIL_USER;
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const googleRefreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+  if (googleUser && googleClientId && googleClientSecret && googleRefreshToken &&
+      !isPlaceholder(googleUser) && !isPlaceholder(googleClientId) &&
+      !isPlaceholder(googleClientSecret) && !isPlaceholder(googleRefreshToken)) {
     try {
-      console.log(`✉️  Attempting delivery to ${to} via Nodemailer SMTP...`);
+      console.log(`✉️  Attempting delivery to ${to} via Nodemailer Google OAuth2...`);
       const transporter = nodemailer.createTransport({
-        pool: true,
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
+        service: 'gmail',
         auth: {
-          user: fromEmail,
-          pass: password,
-        },
-        tls: {
-          rejectUnauthorized: false
+          type: 'OAuth2',
+          user: googleUser,
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+          refreshToken: googleRefreshToken,
         }
       });
 
       const mailOptions = {
-        from: `"Twiller Auth" <${fromEmail}>`,
+        from: `"Twiller Auth" <${googleUser}>`,
         to,
         subject,
         text: textBody,
@@ -685,15 +693,19 @@ const sendEmail = async ({ to, subject, html, text, otp }) => {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log(`✉️  Nodemailer → delivered to ${to} [messageId: ${info.messageId}]`);
+      console.log(`✉️  Nodemailer OAuth2 → delivered to ${to} [messageId: ${info.messageId}]`);
       return { messageId: info.messageId };
     } catch (smtpErr) {
-      console.error(`❌ Nodemailer SMTP send failed: ${smtpErr.message}`);
+      console.error(`❌ Nodemailer OAuth2 send failed: ${smtpErr.message}`);
     }
   }
 
   // 3. Fallback to mock console logging in dev/staging or if no transports are available
-  if (useMock || (!gmailAPIClient && !(fromEmail && password))) {
+  const hasValidGoogleAuth = googleUser && googleClientId && googleClientSecret && googleRefreshToken &&
+    !isPlaceholder(googleUser) && !isPlaceholder(googleClientId) &&
+    !isPlaceholder(googleClientSecret) && !isPlaceholder(googleRefreshToken);
+
+  if (useMock || (!gmailAPIClient && !hasValidGoogleAuth)) {
     logMockEmail();
     return { mockId: `mock-${Date.now()}` };
   }
@@ -1008,7 +1020,7 @@ app.get("/register/check-exists", async (req, res) => {
       checks.emailExists = !!e;
     }
     if (phone) {
-      const normPhone = phone.replace(/\s/g, "");
+      const normPhone = normalizePhone(phone);
       const p = await User.findOne({ phone: normPhone, passwordHash: { $exists: true, $ne: null } });
       checks.phoneExists = !!p;
     }
@@ -1251,8 +1263,9 @@ app.patch("/userupdate/:email", async (req, res) => {
     }
 
     if (updates.phone) {
+      updates.phone = normalizePhone(updates.phone);
       const phoneTaken = await User.findOne({
-        phone: updates.phone.replace(/\s/g, ""),
+        phone: updates.phone,
         _id: { $ne: current._id }
       });
       if (phoneTaken) {
@@ -1340,7 +1353,7 @@ app.post("/register/phone", async (req, res) => {
     if (!phone || !password || !username || !displayName) {
       return res.status(400).send({ error: "All fields required" });
     }
-    const normPhone = phone.replace(/\s/g, "");
+    const normPhone = normalizePhone(phone);
     const otpRecord = whatsappOtpStore.get(normPhone);
     const isOtpVerified = phoneVerified === true || otpRecord?.verified === true;
 
@@ -1420,7 +1433,7 @@ app.post("/login/phone", async (req, res) => {
   try {
     const { phone, password, phoneVerified } = req.body;
     if (!phone || !password) return res.status(400).send({ error: "Phone and password required" });
-    const normPhone = phone.replace(/\s/g, "");
+    const normPhone = normalizePhone(phone);
     const user = await User.findOne({ phone: normPhone });
     if (!user) return res.status(404).send({ error: "No account found with this phone number" });
     if (!user.passwordHash) return res.status(400).send({ error: "No password set for this account" });
@@ -1669,7 +1682,7 @@ app.patch("/user/:id/update-phone", async (req, res) => {
     if (!tokenData || tokenData.userId !== req.params.id || tokenData.expiresAt < Date.now()) {
       return res.status(403).send({ error: "Invalid or expired token" });
     }
-    const updated = await User.findByIdAndUpdate(req.params.id, { phone: newPhone }, { new: true });
+    const updated = await User.findByIdAndUpdate(req.params.id, { phone: normalizePhone(newPhone) }, { new: true });
     changeTokenStore.delete(changeToken);
     return res.status(200).send(updated);
   } catch (error) {
@@ -3233,7 +3246,7 @@ app.post("/api/auth/send-whatsapp-otp", async (req, res) => {
     const { phone } = req.body;
     if (!phone) return res.status(400).send({ error: "Phone number required" });
 
-    const formattedPhone = phone.startsWith("+") ? phone : "+" + phone.replace(/\D/g, "");
+    const formattedPhone = normalizePhone(phone);
 
     const registered = await User.findOne({ phone: formattedPhone, passwordHash: { $exists: true, $ne: null } });
     if (registered) {
@@ -3268,7 +3281,7 @@ app.post("/api/auth/verify-whatsapp-otp", async (req, res) => {
     const { phone, otpCode } = req.body;
     if (!phone || !otpCode) return res.status(400).send({ error: "Phone and OTP required" });
 
-    const formattedPhone = phone.startsWith("+") ? phone : "+" + phone.replace(/\D/g, "");
+    const formattedPhone = normalizePhone(phone);
     const record = whatsappOtpStore.get(formattedPhone);
 
     if (!record) {
