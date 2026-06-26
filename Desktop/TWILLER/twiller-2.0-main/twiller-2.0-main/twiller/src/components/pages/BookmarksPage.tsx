@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Bookmark, Trash2, MoreHorizontal } from "lucide-react";
+import { Bookmark, Trash2, MoreHorizontal, ArrowLeft } from "lucide-react";
 import TweetCard from "../TweetCard";
 import axiosInstance from "@/lib/axiosInstance";
 import { encodeEmailPath } from "@/lib/backendUrl";
@@ -67,9 +67,20 @@ export default function BookmarksPage() {
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-10">
         <div className="flex items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Bookmarks")}</h1>
-            <p className="hidden md:block text-[#71767b] text-sm">@{user?.username}</p>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("twiller-navigate", { detail: "home" }));
+              }}
+              className="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Bookmarks")}</h1>
+              <p className="text-[#71767b] text-xs">@{user?.username}</p>
+            </div>
           </div>
           {bookmarks.length > 0 && (
             <DropdownMenu>

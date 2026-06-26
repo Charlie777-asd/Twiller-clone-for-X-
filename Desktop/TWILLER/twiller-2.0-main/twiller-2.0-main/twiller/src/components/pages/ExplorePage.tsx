@@ -346,20 +346,37 @@ export default function ExplorePage() {
     <div className="min-h-screen pb-10">
       {/* Sticky Search Header */}
       <div className="sticky top-0 bg-black/90 backdrop-blur-md z-10 px-4 pt-3 pb-0 border-b border-[#2f3336]">
-        <div className="relative mb-3">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71767b] h-[18px] w-[18px] pointer-events-none" />
-          <input
-            type="text"
-            placeholder={t("Search X")}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-12 pr-10 py-3 bg-[#202327] text-[#e7e9ea] placeholder-[#71767b] rounded-full text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:bg-black transition-all border border-transparent focus:border-[#1d9bf0]"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#71767b] hover:text-white">
-              <XIcon className="h-4 w-4" />
-            </button>
-          )}
+        <div className="flex items-center gap-3 mb-3">
+          {/* Avatar on mobile layout */}
+          <button 
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("twiller-open-drawer"));
+            }}
+            className="md:hidden flex-shrink-0"
+          >
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={mediaUrl(user?.avatar)} alt={user?.displayName} />
+              <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-xs">
+                {user?.displayName?.[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+          
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71767b] h-[18px] w-[18px] pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t("Search X")}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-12 pr-10 py-3 bg-[#202327] text-[#e7e9ea] placeholder-[#71767b] rounded-full text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:bg-black transition-all border border-transparent focus:border-[#1d9bf0]"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#71767b] hover:text-white">
+                <XIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Explore Categories (Visible when no search query is active) */}

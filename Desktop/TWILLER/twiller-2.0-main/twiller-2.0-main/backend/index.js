@@ -1566,14 +1566,14 @@ app.post("/user/send-change-otp", async (req, res) => {
 
     if (channel === 'mobile' && !user.phone) {
       return res.status(400).send({
-        error: "No mobile number is registered with this account. Please go back and select Email, or add a phone number first.",
+        error: "No phone number is linked to your profile. Please add a phone number to your profile first to use WhatsApp OTP.",
         phoneMissing: true
       });
     }
 
     let warning = null;
     if (channel === 'both' && !user.phone) {
-      warning = "No mobile number is registered with this account. The OTP was only sent to your email. Please add a mobile number first.";
+      warning = "No phone number is linked to your profile. The OTP was only sent to your email. Please add a phone number to your profile first to use WhatsApp OTP.";
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -2343,7 +2343,8 @@ app.get("/post", async (req, res) => {
     const tweets = await Tweet.find(publishedTweetFilter)
       .sort({ timestamp: -1 })
       .limit(100)
-      .populate("author", "displayName username avatar verified subscription");
+      .populate("author", "displayName username avatar verified subscription")
+      .lean();
     return res.status(200).send(tweets);
   } catch (error) {
     return res.status(400).send({ error: error.message });
@@ -2358,7 +2359,7 @@ app.get("/post/search", async (req, res) => {
     const tweets = await Tweet.find({
       content: { $regex: q.trim(), $options: "i" },
       ...publishedTweetFilter,
-    }).sort({ timestamp: -1 }).limit(50).populate("author", "displayName username avatar verified subscription");
+    }).sort({ timestamp: -1 }).limit(50).populate("author", "displayName username avatar verified subscription").lean();
     res.send(tweets);
   } catch (error) {
     res.status(400).send({ error: error.message });
@@ -2374,7 +2375,8 @@ app.get("/post/user/:userId/media", async (req, res) => {
     })
       .sort({ timestamp: -1 })
       .limit(100)
-      .populate("author", "displayName username avatar verified subscription");
+      .populate("author", "displayName username avatar verified subscription")
+      .lean();
     res.send(tweets);
   } catch (error) {
     res.status(400).send({ error: error.message });
@@ -2390,7 +2392,8 @@ app.get("/post/user/:userId", async (req, res) => {
     })
       .sort({ timestamp: -1 })
       .limit(100)
-      .populate("author", "displayName username avatar verified subscription");
+      .populate("author", "displayName username avatar verified subscription")
+      .lean();
     return res.status(200).send(tweets);
   } catch (error) {
     return res.status(400).send({ error: error.message });

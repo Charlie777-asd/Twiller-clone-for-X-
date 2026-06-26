@@ -133,7 +133,24 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Notifications")}</h1>
+          <div className="flex items-center gap-3">
+            {/* Avatar on mobile layout */}
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("twiller-open-drawer"));
+              }}
+              className="md:hidden flex-shrink-0"
+            >
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={mediaUrl(user?.avatar)} alt={user?.displayName} />
+                <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-xs">
+                  {user?.displayName?.[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+            <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Notifications")}</h1>
+          </div>
+          
           <div className="flex items-center gap-3">
             {unreadCount > 0 && (
               <span className="bg-[#1d9bf0] text-white text-xs font-bold rounded-full px-2.5 py-0.5 animate-pulse">

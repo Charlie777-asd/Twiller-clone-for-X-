@@ -148,7 +148,7 @@ export default function ProfilePage() {
 
   // ── Tweet fetching ────────────────────────────────────────────────────────
   const fetchTweets = useCallback(async () => {
-    if (!user) return;
+    if (!user?._id) return;
     try {
       setLoading(true);
       const res = await axiosInstance.get(`/post/user/${user._id}`);
@@ -158,7 +158,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user?._id]);
 
   useEffect(() => {
     fetchTweets();
@@ -259,7 +259,12 @@ export default function ProfilePage() {
     <div className="min-h-screen">
       {/* ── Sticky Header ──────────────────────────────────────────────── */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-20 px-4 h-[53px] flex items-center space-x-6">
-        <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
+        <button 
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent("twiller-navigate", { detail: "home" }));
+          }}
+          className="p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
           <ArrowLeft className="h-6 w-6 text-[#e7e9ea]" />
         </button>
         <div>

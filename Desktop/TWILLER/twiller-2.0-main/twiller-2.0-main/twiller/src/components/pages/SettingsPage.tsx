@@ -6,7 +6,7 @@ import {
   Type, Globe, HelpCircle, Shield, Smartphone, Mail,
   Phone, RefreshCw, Copy, Check, Eye as EyeIcon, EyeOff,
   Key, AlertCircle, CheckCircle2, X as XIcon, MapPin, MessageSquare,
-  CreditCard,
+  CreditCard, Search,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -1434,10 +1434,20 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="px-4 py-3">
-          <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea] mb-3">{t("settings")}</h1>
+          <div className="flex items-center gap-3 mb-3">
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("twiller-navigate", { detail: "home" }));
+              }}
+              className="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-[#e7e9ea]"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("settings")}</h1>
+          </div>
           {/* Search */}
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71767b] h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71767b] h-4 w-4" />
             <input
               type="text"
               placeholder={t("Search Settings")}

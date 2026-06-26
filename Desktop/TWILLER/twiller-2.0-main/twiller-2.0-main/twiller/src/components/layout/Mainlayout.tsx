@@ -187,11 +187,16 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
     const handleNavigate = (e: any) => {
       setCurrentPage(e.detail);
     };
+    const handleOpenDrawer = () => {
+      setIsDrawerOpen(true);
+    };
     window.addEventListener("twiller-view-user", handleViewUser);
     window.addEventListener("twiller-navigate", handleNavigate);
+    window.addEventListener("twiller-open-drawer", handleOpenDrawer);
     return () => {
       window.removeEventListener("twiller-view-user", handleViewUser);
       window.removeEventListener("twiller-navigate", handleNavigate);
+      window.removeEventListener("twiller-open-drawer", handleOpenDrawer);
     };
   }, [user?._id]);
 
@@ -222,22 +227,24 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* ── Mobile Top Header ────────────────────────────────── */}
       {/* flex-shrink-0 locks it to its h-16 height; z-40 keeps it above page sticky sub-headers (z-10/z-20) */}
-      <header className="flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden w-full">
-        <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
-            <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-base">
-              {user.displayName?.[0]?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </button>
-        <span className="font-extrabold text-[20px] text-[#e7e9ea] tracking-tight">
-          {t(currentPage === "userProfile" ? "profile" : currentPage.toLowerCase())}
-        </span>
-        <button onClick={() => setCurrentPage("settings")} className="text-[#e7e9ea] hover:text-white transition-colors">
-          <Settings className="h-6 w-6" />
-        </button>
-      </header>
+      {currentPage === "home" && (
+        <header className="flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-[#2f3336] z-40 h-16 flex items-center justify-between px-4 md:hidden w-full">
+          <button onClick={() => setIsDrawerOpen(true)} className="flex-shrink-0">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={mediaUrl(user.avatar)} alt={user.displayName} />
+              <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-base">
+                {user.displayName?.[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+          <span className="font-extrabold text-[20px] text-[#e7e9ea] tracking-tight">
+            {t("home")}
+          </span>
+          <button onClick={() => setCurrentPage("settings")} className="text-[#e7e9ea] hover:text-white transition-colors">
+            <Settings className="h-6 w-6" />
+          </button>
+        </header>
+      )}
 
       {/* ── Main content ─────────────────────────────────── */}
       {/*

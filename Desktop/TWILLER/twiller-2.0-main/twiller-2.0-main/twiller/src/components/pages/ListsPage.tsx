@@ -457,8 +457,17 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
     <div className="min-h-screen bg-black text-white animate-page-fade">
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Lists")}</h1>
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => onNavigate?.("home")}
+              className="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Lists")}</h1>
+          </div>
           <button
             onClick={() => {
               setNewListName("");

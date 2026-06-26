@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { 
   HelpCircle, MessageSquare, Ticket, FileText, CheckCircle2, 
   AlertTriangle, RefreshCw, ChevronDown, ChevronUp, Clock, 
-  ArrowRight, User as UserIcon, Mail, Phone, Camera 
+  ArrowRight, User as UserIcon, Mail, Phone, Camera, ArrowLeft
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -163,10 +163,21 @@ export default function HelpDeskPage() {
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
         <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="hidden md:flex text-xl font-extrabold text-[#e7e9ea] items-center gap-2">
-            <HelpCircle className="h-5 w-5 text-[#1d9bf0]" />
-            {t("help_desk_support")}
-          </h1>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("twiller-navigate", { detail: "home" }));
+              }}
+              className="md:hidden p-2 rounded-full hover:bg-white/10 transition-colors text-white"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-extrabold text-[#e7e9ea] flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-[#1d9bf0]" />
+              {t("help_desk_support")}
+            </h1>
+          </div>
           {activeTab === "tickets" && (
             <button
               onClick={fetchTickets}

@@ -122,7 +122,23 @@ export default function MessagesPage() {
       {/* ── Left: Conversation list ─────────────────────────────── */}
       <div className={`${activeConv ? "hidden md:flex" : "flex"} w-full md:w-[350px] flex-shrink-0 border-r border-[#2f3336] flex-col`}>
         <div className="sticky top-0 bg-black/90 backdrop-blur-md px-4 py-3 border-b border-[#2f3336] flex items-center justify-between">
-          <h1 className="hidden md:block text-xl font-extrabold text-[#e7e9ea]">{t("Messages")}</h1>
+          <div className="flex items-center gap-3">
+            {/* Avatar on mobile layout */}
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("twiller-open-drawer"));
+              }}
+              className="md:hidden flex-shrink-0"
+            >
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={mediaUrl(user?.avatar)} alt={user?.displayName} />
+                <AvatarFallback className="bg-[#1d9bf0] text-white font-bold text-xs">
+                  {user?.displayName?.[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+            <h1 className="text-xl font-extrabold text-[#e7e9ea]">{t("Messages")}</h1>
+          </div>
           <button
             aria-label="New message"
             className="p-2 rounded-full hover:bg-white/10 transition-colors"
