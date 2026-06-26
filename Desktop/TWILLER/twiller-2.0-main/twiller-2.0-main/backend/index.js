@@ -1560,20 +1560,28 @@ app.post("/user/send-change-otp", async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).send({ error: "User not found" });
 
-    if (!user.phone && !user.email) {
-      return res.status(400).send({ error: "No contact info available to send OTP." });
-    }
-
     if (channel === 'mobile' && !user.phone) {
       return res.status(400).send({
-        error: "No phone number is linked to your profile. Please add a phone number to your profile first to use WhatsApp OTP.",
+        error: "Mobile number is missing. Please add a mobile number to your account profile to receive the WhatsApp OTP. Note: You must also join the WhatsApp Sandbox to receive the code.",
         phoneMissing: true
       });
     }
 
+    if (channel === 'email' && (!user.email || user.email.includes("@phone.twiller.local"))) {
+      return res.status(400).send({
+        error: "Email address is missing. Please add an email to your account profile to receive the OTP."
+      });
+    }
+
     let warning = null;
-    if (channel === 'both' && !user.phone) {
-      warning = "No phone number is linked to your profile. The OTP was only sent to your email. Please add a phone number to your profile first to use WhatsApp OTP.";
+    if (channel === 'both') {
+      if (!user.phone && (!user.email || user.email.includes("@phone.twiller.local"))) {
+        return res.status(400).send({ error: "Both email and phone number are missing." });
+      } else if (!user.phone) {
+        warning = "Mobile number is missing. Please add a mobile number to your account profile to receive the WhatsApp OTP. Note: You must also join the WhatsApp Sandbox to receive the code.";
+      } else if (!user.email || user.email.includes("@phone.twiller.local")) {
+        warning = "Email address is missing. Please add an email to your account profile to receive the OTP.";
+      }
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1888,6 +1896,18 @@ app.post("/language/request-otp", async (req, res) => {
       } else {
         channel = user.phone ? "mobile" : "email";
       }
+    }
+
+    if (channel === 'mobile' && !user.phone) {
+      return res.status(400).send({
+        error: "Mobile number is missing. Please add a mobile number to your account profile to receive the WhatsApp OTP. Note: You must also join the WhatsApp Sandbox to receive the code."
+      });
+    }
+
+    if (channel === 'email' && (!user.email || user.email.includes("@phone.twiller.local"))) {
+      return res.status(400).send({
+        error: "Email address is missing. Please add an email to your account profile to receive the OTP."
+      });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -2924,14 +2944,26 @@ app.post("/forgot-password", async (req, res) => {
 
     if (channel === 'mobile' && !user.phone) {
       return res.status(400).send({
-        error: "No mobile number is registered with this account. Please use the Email option, or log in to configure your mobile number.",
+        error: "Mobile number is missing. Please add a mobile number to your account profile to receive the WhatsApp OTP. Note: You must also join the WhatsApp Sandbox to receive the code.",
         phoneMissing: true
       });
     }
 
+    if (channel === 'email' && (!user.email || user.email.includes("@phone.twiller.local"))) {
+      return res.status(400).send({
+        error: "Email address is missing. Please add an email to your account profile to receive the OTP."
+      });
+    }
+
     let warning = null;
-    if (channel === 'both' && !user.phone) {
-      warning = "No mobile number is registered with this account. The OTP was only sent to your email. Please add a mobile number in settings once logged in.";
+    if (channel === 'both') {
+      if (!user.phone && (!user.email || user.email.includes("@phone.twiller.local"))) {
+        return res.status(400).send({ error: "Both email and phone number are missing." });
+      } else if (!user.phone) {
+        warning = "Mobile number is missing. Please add a mobile number to your account profile to receive the WhatsApp OTP. Note: You must also join the WhatsApp Sandbox to receive the code.";
+      } else if (!user.email || user.email.includes("@phone.twiller.local")) {
+        warning = "Email address is missing. Please add an email to your account profile to receive the OTP.";
+      }
     }
 
     let sentVia = [];

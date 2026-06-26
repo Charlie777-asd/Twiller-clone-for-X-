@@ -8,6 +8,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { getErrorMessage } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
+import { dispatchOtp } from "@/lib/otpService";
 import { encodeEmailPath, mediaUrl } from "@/lib/backendUrl";
 
 interface AuthModalProps {
@@ -162,7 +163,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     setErrors({});
     try {
       const formattedPhone = formData.phone.startsWith("+") ? formData.phone : "+" + formData.phone.replace(/\D/g, "");
-      const res = await axiosInstance.post('/api/auth/send-whatsapp-otp', { phone: formattedPhone });
+      const res = await dispatchOtp("mobile", null, formattedPhone, () =>
+        axiosInstance.post('/api/auth/send-whatsapp-otp', { phone: formattedPhone })
+      );
       if (res.data.success) {
         setAuthStep(2);
       } else {

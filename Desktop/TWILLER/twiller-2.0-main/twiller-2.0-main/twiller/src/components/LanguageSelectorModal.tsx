@@ -6,6 +6,7 @@ import { X, Globe, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import axiosInstance from "@/lib/axiosInstance";
+import { dispatchOtp } from "@/lib/otpService";
 
 interface LanguageSelectorModalProps {
   onClose: () => void;
@@ -44,14 +45,19 @@ export default function LanguageSelectorModal({ onClose }: LanguageSelectorModal
     setSelectedChannel(autoChannel);
 
     try {
-      await axiosInstance.post("/language/request-otp", {
-        email: user?.email,
-        targetLanguage: lang,
-        channel: autoChannel,
-      });
+      await dispatchOtp(
+        autoChannel,
+        user?.email,
+        user?.phone,
+        () => axiosInstance.post("/language/request-otp", {
+          email: user?.email,
+          targetLanguage: lang,
+          channel: autoChannel,
+        })
+      );
       setStep("otp");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to request OTP");
+      setError(err.message || "Failed to request OTP");
     } finally {
       setLoading(false);
     }

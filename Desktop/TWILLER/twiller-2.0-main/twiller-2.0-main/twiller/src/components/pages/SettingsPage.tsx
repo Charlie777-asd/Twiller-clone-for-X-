@@ -15,6 +15,7 @@ import { encodeEmailPath, mediaUrl } from "@/lib/backendUrl";
 import { isNotificationsEnabled, requestNotificationPermission, setNotificationsEnabled } from "@/lib/notificationService";
 import OtpChannelPicker, { OtpChannel } from "@/components/OtpChannelPicker";
 import LoadingSpinner from "../loading-spinner";
+import { dispatchOtp } from "@/lib/otpService";
 
 
 // ── Password generator (letters only) ──────────────────────────────────────
@@ -201,7 +202,9 @@ function AccountSection({ onBack }: { onBack: () => void }) {
     setOtpStep("sending"); setError(""); setWarning("");
     const purpose = editing === "email" ? "change_email" : "change_phone";
     try {
-      const res = await axiosInstance.post("/user/send-change-otp", { userId: user._id, purpose, channel });
+      const res = await dispatchOtp(channel, user.email, user.phone, () =>
+        axiosInstance.post("/user/send-change-otp", { userId: user._id, purpose, channel })
+      );
       setOtpStep("otp_entry");
       startResendCooldown();
       if (res.data.warning) {
@@ -209,12 +212,8 @@ function AccountSection({ onBack }: { onBack: () => void }) {
       }
       setSuccess(res.data.message || t("OTP sent to your email."));
       setTimeout(() => setSuccess(""), 4000);
-    } catch (err) {
-      const axErr = err as { response?: { data?: { error?: string; warning?: string } } };
-      setError(axErr?.response?.data?.error || "Failed to send OTP.");
-      if (axErr?.response?.data?.warning) {
-        setWarning(axErr.response.data.warning);
-      }
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP.");
       setOtpStep("idle");
     }
   };

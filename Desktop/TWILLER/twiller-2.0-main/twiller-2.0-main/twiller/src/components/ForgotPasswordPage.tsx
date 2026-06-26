@@ -6,6 +6,7 @@ import {
   KeyRound, Mail, Phone, ShieldCheck, Lock, MessageSquare, Bell,
 } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
+import { dispatchOtp } from "@/lib/otpService";
 import { useLanguage } from "@/context/LanguageContext";
 import LoadingSpinner from "./loading-spinner";
 
@@ -142,7 +143,12 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
     if (!validateIdentifier()) return;
     setIsSubmitting(true);
     try {
-      const res = await axiosInstance.post("/forgot-password", { identifier: identifier.trim(), channel: otpChannel });
+      const res = await dispatchOtp(
+        otpChannel,
+        inputType === "email" ? identifier : null,
+        inputType === "phone" ? identifier : null,
+        () => axiosInstance.post("/forgot-password", { identifier: identifier.trim(), channel: otpChannel })
+      );
       // Handle new response fields
       setMaskedContact(res.data.maskedContact || res.data.maskedEmail || identifier);
       setContactType(res.data.contactType || "email");
@@ -154,12 +160,12 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
       }
       setStep("otp");
       startResendCooldown();
-    } catch (err: unknown) {
-      const axErr = err as { response?: { status?: number; data?: { error?: string; rateLimited?: boolean } } };
-      if (axErr?.response?.status === 429 || axErr?.response?.data?.rateLimited) {
+    } catch (err: any) {
+      const errorMsg = err.message || "Something went wrong. Please try again.";
+      if (errorMsg.includes("limit") || errorMsg.includes("Rate limit")) {
         setStep("rateLimited");
       } else {
-        setError(axErr?.response?.data?.error || "Something went wrong. Please try again.");
+        setError(errorMsg);
       }
     } finally {
       setIsSubmitting(false);
@@ -173,7 +179,12 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
     setWarning("");
     setIsSubmitting(true);
     try {
-      const res = await axiosInstance.post("/forgot-password", { identifier: identifier.trim(), channel: otpChannel });
+      const res = await dispatchOtp(
+        otpChannel,
+        inputType === "email" ? identifier : null,
+        inputType === "phone" ? identifier : null,
+        () => axiosInstance.post("/forgot-password", { identifier: identifier.trim(), channel: otpChannel })
+      );
       setMaskedContact(res.data.maskedContact || res.data.maskedEmail || identifier);
       setContactType(res.data.contactType || "email");
       setDevOtp(res.data.devOtp || null);
@@ -182,9 +193,8 @@ export default function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) 
       }
       setOtp("");
       startResendCooldown();
-    } catch (err: unknown) {
-      const axErr = err as { response?: { data?: { error?: string } } };
-      setError(axErr?.response?.data?.error || "Failed to resend OTP.");
+    } catch (err: any) {
+      setError(err.message || "Failed to resend OTP.");
     } finally {
       setIsSubmitting(false);
     }
