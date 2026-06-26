@@ -10,6 +10,7 @@ import axiosInstance from "@/lib/axiosInstance";
 import type { Tweet } from "@/lib/types";
 import TweetCard from "../TweetCard";
 import LoadingSpinner from "../loading-spinner";
+import { mediaUrl } from "@/lib/backendUrl";
 
 interface ListsPageProps {
   onNavigate?: (page: Page) => void;
@@ -292,7 +293,7 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
         <div className="w-full h-44 bg-[#1d1f23] overflow-hidden relative border-b border-[#2f3336]">
           {selectedList.banner ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={selectedList.banner} alt={selectedList.name} className="w-full h-full object-cover" />
+            <img src={mediaUrl(selectedList.banner)} alt={selectedList.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-[#1d9bf0]/40 via-[#7856ff]/40 to-[#f91880]/40" />
           )}
@@ -325,7 +326,7 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
             <span>{t("Created by") || "Created by"}</span>
             <div className="flex items-center gap-1">
               <Avatar className="h-4 w-4">
-                <AvatarImage src={selectedList.ownerAvatar} />
+                <AvatarImage src={mediaUrl(selectedList.ownerAvatar)} />
                 <AvatarFallback className="text-[7px] bg-[#1d9bf0] text-white">
                   {selectedList.ownerName[0].toUpperCase()}
                 </AvatarFallback>
@@ -538,7 +539,7 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
                   <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#1d1f23] flex-shrink-0">
                     {list.banner ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={list.banner} alt={list.name} className="w-full h-full object-cover" />
+                      <img src={mediaUrl(list.banner)} alt={list.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#1d9bf0] to-[#7856ff]" />
                     )}
@@ -580,7 +581,7 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
                   <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#1d1f23] flex-shrink-0">
                     {list.banner ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={list.banner} alt={list.name} className="w-full h-full object-cover" />
+                      <img src={mediaUrl(list.banner)} alt={list.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#ffd400] to-[#f91880]" />
                     )}
@@ -612,7 +613,7 @@ export default function ListsPage({ onNavigate }: ListsPageProps) {
                   <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#1d1f23] flex-shrink-0">
                     {list.banner ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={list.banner} alt={list.name} className="w-full h-full object-cover" />
+                      <img src={mediaUrl(list.banner)} alt={list.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#1d9bf0] to-[#00ba7c]" />
                     )}

@@ -433,7 +433,7 @@ export default function TweetComposer({ onTweetPosted }: { onTweetPosted: (tweet
             )}
             {imageUrl && !imageLoading && (
               <div className="relative mb-3 rounded-2xl overflow-hidden border border-[#2f3336]">
-                <img src={imageUrl} alt="Upload preview" className="w-full max-h-[450px] object-cover" />
+                <img src={mediaUrl(imageUrl)} alt="Upload preview" className="w-full max-h-[450px] object-cover" />
                 <button
                   onClick={() => setImageUrl("")}
                   className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors"

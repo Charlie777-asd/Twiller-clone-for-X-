@@ -533,7 +533,7 @@ export default function TweetCard({ tweet, onDeleted }: TweetCardProps) {
             </button>
             <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
               <img
-                src={tweetState.image}
+                src={mediaUrl(tweetState.image)}
                 alt="Post attachment fullscreen"
                 className="w-auto h-auto max-w-full max-h-[90vh] rounded-lg shadow-2xl object-contain animate-scale-up"
               />

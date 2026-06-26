@@ -8,7 +8,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { getErrorMessage } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
-import { encodeEmailPath } from "@/lib/backendUrl";
+import { encodeEmailPath, mediaUrl } from "@/lib/backendUrl";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -966,7 +966,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                       <div key={bot._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors border border-[#2f3336]">
                         <div className="flex items-center gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={bot.avatar} alt={bot.displayName} className="w-12 h-12 rounded-full object-cover" />
+                          <img src={mediaUrl(bot.avatar)} alt={bot.displayName} className="w-12 h-12 rounded-full object-cover" />
                           <div>
                             <div className="flex items-center gap-1">
                               <p className="text-[#e7e9ea] font-bold text-[15px]">{bot.displayName}</p>

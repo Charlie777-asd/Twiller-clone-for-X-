@@ -9,7 +9,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import axiosInstance from "@/lib/axiosInstance";
-import { buildBackendUrl } from "@/lib/backendUrl";
+import { buildBackendUrl, mediaUrl } from "@/lib/backendUrl";
 import LoadingSpinner from "../loading-spinner";
 
 type Tab = "submit" | "tickets" | "faq";
@@ -492,10 +492,10 @@ export default function HelpDeskPage() {
                                 {/* Uploaded screenshots come from the backend uploads folder and are not suitable for Next image optimization. */}
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
-                                  src={buildBackendUrl(ticket.screenshot)}
+                                  src={mediaUrl(ticket.screenshot)}
                                   alt="Ticket Screenshot"
                                   className="w-full h-auto max-h-[300px] object-contain cursor-zoom-in"
-                                  onClick={() => window.open(buildBackendUrl(ticket.screenshot), "_blank")}
+                                  onClick={() => window.open(mediaUrl(ticket.screenshot), "_blank")}
                                 />
                               </div>
                             </div>

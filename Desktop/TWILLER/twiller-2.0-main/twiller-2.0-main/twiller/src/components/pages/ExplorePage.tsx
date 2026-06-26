@@ -488,7 +488,7 @@ export default function ExplorePage() {
             <div className="relative overflow-hidden cursor-pointer" onClick={() => handleTrendClick("#IPL2026")}>
               <div className="h-52 relative">
                 <img
-                  src="https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg?auto=compress&cs=tinysrgb&w=800"
+                  src={mediaUrl("https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg?auto=compress&cs=tinysrgb&w=800")}
                   alt="IPL Cricket featured"
                   className="w-full h-full object-cover brightness-50"
                 />
@@ -532,7 +532,7 @@ export default function ExplorePage() {
                         </span>
                       )}
                       {item.img && (
-                        <img src={item.img} alt={item.topic} className="w-14 h-12 rounded-xl object-cover border border-[#2f3336]" />
+                        <img src={mediaUrl(item.img)} alt={item.topic} className="w-14 h-12 rounded-xl object-cover border border-[#2f3336]" />
                       )}
                     </div>
                   </div>
