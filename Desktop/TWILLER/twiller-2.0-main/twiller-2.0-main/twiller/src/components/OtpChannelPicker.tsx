@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { Mail, Smartphone, Bell, X as XIcon } from "lucide-react";
 
@@ -10,6 +9,8 @@ interface OtpChannelPickerProps {
   hasPhone: boolean;
   onSelect: (channel: OtpChannel) => void;
   onCancel: () => void;
+  onAddPhone?: () => void;
+  onAddEmail?: () => void;
   title?: string;
   subtitle?: string;
 }
@@ -71,6 +72,8 @@ export default function OtpChannelPicker({
   hasPhone,
   onSelect,
   onCancel,
+  onAddPhone,
+  onAddEmail,
   title = "Choose OTP delivery method",
   subtitle = "Where would you like to receive your verification code?",
 }: OtpChannelPickerProps) {
@@ -110,23 +113,34 @@ export default function OtpChannelPicker({
         {/* Channel options */}
         <div className="px-5 pb-5 space-y-2.5">
           {channels.map((ch) => {
-            const isAvailable =
-              (!ch.requiresEmail || hasEmail) &&
-              (!ch.requiresPhone || hasPhone);
+            const needsPhone = ch.requiresPhone && !hasPhone;
+            const needsEmail = ch.requiresEmail && !hasEmail;
+            const isAvailable = !needsPhone && !needsEmail;
+            const isClickable = isAvailable || (needsPhone && !!onAddPhone) || (needsEmail && !!onAddEmail);
             const Icon = ch.icon;
 
             return (
               <button
                 key={ch.id}
-                onClick={() => isAvailable && onSelect(ch.id)}
-                disabled={!isAvailable}
+                onClick={() => {
+                  if (needsPhone && onAddPhone) {
+                    onAddPhone();
+                    return;
+                  }
+                  if (needsEmail && onAddEmail) {
+                    onAddEmail();
+                    return;
+                  }
+                  onSelect(ch.id);
+                }}
+                disabled={!isClickable}
                 className={`
                   w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 text-left
-                  ${isAvailable
+                  ${isClickable
                     ? `${ch.border} hover:bg-gradient-to-r ${ch.gradient} cursor-pointer hover:scale-[1.01] active:scale-[0.99]`
                     : "border-[#2f3336] opacity-40 cursor-not-allowed"
                   }
-                  ${!isAvailable ? "bg-[#16181c]/50" : "bg-[#16181c]"}
+                  ${!isClickable ? "bg-[#16181c]/50" : "bg-[#16181c]"}
                 `}
               >
                 {/* Icon bubble */}
@@ -138,13 +152,16 @@ export default function OtpChannelPicker({
 
                 {/* Text */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#e7e9ea] font-semibold text-[15px] flex items-center gap-2">
+                  <p className="text-[#e7e9ea] font-semibold text-[15px] flex items-center gap-2 flex-wrap">
                     {t(ch.label)}
-                    {!isAvailable && (
-                      <span className="text-[10px] font-bold text-[#536471] bg-[#2f3336] px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                        {ch.requiresPhone && !hasPhone
-                          ? t("No phone")
-                          : t("No email")}
+                    {needsPhone && (
+                      <span className="text-[10px] font-bold text-[#25D366] bg-[#25D366]/10 border border-[#25D366]/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                        {onAddPhone ? t("Click to add phone") : t("No phone")}
+                      </span>
+                    )}
+                    {needsEmail && !needsPhone && (
+                      <span className="text-[10px] font-bold text-[#1d9bf0] bg-[#1d9bf0]/10 border border-[#1d9bf0]/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                        {onAddEmail ? t("Click to add email") : t("No email")}
                       </span>
                     )}
                   </p>
@@ -152,7 +169,7 @@ export default function OtpChannelPicker({
                 </div>
 
                 {/* Arrow */}
-                {isAvailable && (
+                {isClickable && (
                   <div
                     className="shrink-0 text-[#71767b]"
                     style={{ color: ch.color, opacity: 0.6 }}

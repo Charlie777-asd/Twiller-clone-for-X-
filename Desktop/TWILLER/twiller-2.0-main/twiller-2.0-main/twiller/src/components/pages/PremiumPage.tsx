@@ -193,6 +193,65 @@ function SuccessModal({
   );
 }
 
+// ── Failure Modal ─────────────────────────────────────────────────────────────
+function FailureModal({
+  data,
+  onClose,
+}: {
+  data: { orderId: string; failureReason: string; plan: string; planName: string; amount: number };
+  onClose: () => void;
+}) {
+  const plan = PLANS.find(p => p.id === data.plan);
+  const { t } = useLanguage();
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center sm:items-center bg-black/80 backdrop-blur-md p-4 pt-12 sm:pt-4 overflow-y-auto">
+      <div className="w-full max-w-sm bg-[#0d0d0d] border border-[#2f3336] rounded-2xl shadow-2xl overflow-hidden text-center mt-4 sm:mt-0 animate-in fade-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="p-6 pb-2 sm:p-8 sm:pb-4">
+          <div
+            className="w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-5 bg-[#f4212e]/10 border-2 border-[#f4212e]"
+          >
+            <AlertTriangle className="h-7 w-7 sm:h-9 sm:w-9 text-[#f4212e]" />
+          </div>
+          <h2 className="text-white font-extrabold text-xl sm:text-2xl mb-1 sm:mb-2">{t("Payment Failed ❌")}</h2>
+          <p className="text-[#71767b] text-xs sm:text-sm mb-3 sm:mb-5">
+            {t("Your payment for")} <strong style={{ color: plan?.color }}>{t(data.planName)}</strong> {t("could not be completed.")}
+          </p>
+        </div>
+
+        {/* Invoice details */}
+        <div className="mx-5 sm:mx-6 bg-[#16181c] rounded-xl p-3.5 sm:p-4 text-left space-y-1.5 sm:space-y-2 mb-4 sm:mb-5 border border-[#2f3336]">
+          <div className="flex justify-between text-xs sm:text-sm">
+            <span className="text-[#71767b]">{t("Order ID")}</span>
+            <span className="text-white font-mono text-xs truncate max-w-[150px] sm:max-w-[180px]">{data.orderId}</span>
+          </div>
+          <div className="flex justify-between text-xs sm:text-sm">
+            <span className="text-[#71767b]">{t("Plan")}</span>
+            <span className="text-white font-bold">{data.planName}</span>
+          </div>
+          <div className="flex justify-between text-xs sm:text-sm">
+            <span className="text-[#71767b]">{t("Amount")}</span>
+            <span className="font-bold text-white">₹{data.amount}</span>
+          </div>
+          <div className="flex flex-col text-xs sm:text-sm border-t border-[#2f3336] pt-2 mt-1">
+            <span className="text-[#71767b] mb-0.5">{t("Reason for Failure")}</span>
+            <span className="text-[#f4212e] font-semibold">{t(data.failureReason)}</span>
+          </div>
+        </div>
+
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-full font-extrabold text-white text-[15px] transition-all bg-[#2f3336] hover:bg-white/10 active:scale-95"
+          >
+            {t("Try Again")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Plan Card ─────────────────────────────────────────────────────────────────
 function PlanCard({
   plan,
@@ -315,11 +374,13 @@ function MockCheckoutModal({
   data,
   onConfirm,
   onClose,
+  onSimulateFailure,
   loading
 }: {
   data: RazorpayOrderData;
   onConfirm: () => void;
   onClose: () => void;
+  onSimulateFailure: () => void;
   loading: boolean;
 }) {
   const plan = PLANS.find(p => p.id === data.planId);
@@ -372,6 +433,14 @@ function MockCheckoutModal({
             <span>{t("Confirm Mock Payment")}</span>
           </button>
           <button
+            onClick={onSimulateFailure}
+            disabled={loading}
+            className="w-full py-3 rounded-full font-extrabold text-white text-sm transition-all hover:bg-[#f4212e]/10 active:scale-95 bg-transparent border border-[#f4212e]/30 flex items-center justify-center gap-1.5"
+          >
+            {loading && <LoadingSpinner size="sm" />}
+            <span className="text-[#f4212e]">{t("Simulate Failure")}</span>
+          </button>
+          <button
             onClick={onClose}
             disabled={loading}
             className="w-full py-2.5 rounded-full font-bold text-white text-xs transition-all hover:bg-white/5 bg-transparent border border-[#2f3336]"
@@ -390,6 +459,9 @@ export default function PremiumPage() {
   const { user, refreshUser, updateUser } = useAuth();
   const [successData, setSuccessData] = useState<{
     orderId: string; paymentId: string; plan: string; planName: string; amount: number;
+  } | null>(null);
+  const [failureData, setFailureData] = useState<{
+    orderId: string; failureReason: string; plan: string; planName: string; amount: number;
   } | null>(null);
   const [subscriptionInfo, setSubscriptionInfo] = useState<{
     plan: PlanId;
@@ -463,11 +535,45 @@ export default function PremiumPage() {
   const handleCancelMockPayment = async () => {
     if (!mockOrderToConfirm) return;
     const orderId = mockOrderToConfirm.orderId;
+    const planId = mockOrderToConfirm.planId;
+    const planName = mockOrderToConfirm.planName;
+    const amount = mockOrderToConfirm.amount;
     setMockOrderToConfirm(null);
     try {
       await axiosInstance.post("/api/payments/mark-failed", {
         orderId,
         failureReason: "Mock checkout cancelled by user"
+      });
+      setFailureData({
+        orderId,
+        failureReason: "Mock checkout cancelled by user",
+        plan: planId,
+        planName,
+        amount
+      });
+    } catch (err) {
+      console.error("Failed to mark mock payment as failed:", err);
+    }
+  };
+
+  const handleFailMockPayment = async () => {
+    if (!mockOrderToConfirm) return;
+    const orderId = mockOrderToConfirm.orderId;
+    const planId = mockOrderToConfirm.planId;
+    const planName = mockOrderToConfirm.planName;
+    const amount = mockOrderToConfirm.amount;
+    setMockOrderToConfirm(null);
+    try {
+      await axiosInstance.post("/api/payments/mark-failed", {
+        orderId,
+        failureReason: "Mock checkout failed by user"
+      });
+      setFailureData({
+        orderId,
+        failureReason: "Mock checkout failed by user",
+        plan: planId,
+        planName,
+        amount
       });
     } catch (err) {
       console.error("Failed to mark mock payment as failed:", err);
@@ -570,10 +676,18 @@ export default function PremiumPage() {
           },
           modal: {
             ondismiss: async () => {
+              const reason = "Razorpay payment checkout dismissed by user";
               try {
                 await axiosInstance.post("/api/payments/mark-failed", {
                   orderId,
-                  failureReason: "Razorpay payment checkout dismissed by user"
+                  failureReason: reason
+                });
+                setFailureData({
+                  orderId,
+                  failureReason: reason,
+                  plan: plan.id,
+                  planName: planName,
+                  amount: amount
                 });
               } catch (err) {
                 console.error("Failed to mark payment as failed on dismiss:", err);
@@ -587,10 +701,18 @@ export default function PremiumPage() {
 
         const rzp1 = new (window as any).Razorpay(options);
         rzp1.on('payment.failed', async (response: any) => {
+          const reason = response.error?.description || "Razorpay payment failed";
           try {
             await axiosInstance.post("/api/payments/mark-failed", {
               orderId,
-              failureReason: response.error?.description || "Razorpay payment failed"
+              failureReason: reason
+            });
+            setFailureData({
+              orderId,
+              failureReason: reason,
+              plan: plan.id,
+              planName: planName,
+              amount: amount
             });
           } catch (err) {
             console.error("Failed to mark failed payment:", err);
@@ -754,6 +876,7 @@ export default function PremiumPage() {
             data={mockOrderToConfirm}
             onConfirm={handleConfirmMockPayment}
             onClose={handleCancelMockPayment}
+            onSimulateFailure={handleFailMockPayment}
             loading={confirmingMock}
           />
         )}
@@ -853,6 +976,11 @@ export default function PremiumPage() {
       {/* Success Modal */}
       {successData && (
         <SuccessModal data={successData} onClose={() => setSuccessData(null)} />
+      )}
+
+      {/* Failure Modal */}
+      {failureData && (
+        <FailureModal data={failureData} onClose={() => setFailureData(null)} />
       )}
 
     </div>

@@ -10,6 +10,8 @@ import User from "./models/user.js";
 import Tweet from "./models/tweet.js";
 import multer from "multer";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import fs from "fs";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
@@ -469,13 +471,24 @@ const removeUploadedFile = (file) => {
   if (file?.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
 };
 
-// ── Multer for images ──────────────────────────────────────────────────────
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.resolve("uploads")),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+// ── Cloudinary Configuration & Multer Storage ──────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const cloudinaryImageStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "twiller_uploads",
+    allowed_formats: ["jpg", "jpeg", "png"],
+  },
+});
+
+// ── Multer for images ──────────────────────────────────────────────────────
 const uploadImage = multer({
-  storage: imageStorage,
+  storage: cloudinaryImageStorage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) cb(null, true);
@@ -1984,7 +1997,7 @@ app.post("/language/verify-otp", async (req, res) => {
 
 app.post("/upload", uploadImage.single("image"), (req, res) => {
   if (!req.file) return res.status(400).send({ error: "No file uploaded" });
-  const imageUrl = buildPublicUploadUrl(`/uploads/${req.file.filename}`);
+  const imageUrl = req.file.path;
   res.status(200).send({ data: { display_url: imageUrl } });
 });
 
@@ -2288,7 +2301,10 @@ const getBotTemplates = () => {
 
 app.get("/post", async (req, res) => {
   try {
-    const tweets = await Tweet.find(publishedTweetFilter).sort({ timestamp: -1 }).populate("author");
+    const tweets = await Tweet.find(publishedTweetFilter)
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .populate("author", "displayName username avatar verified subscription");
     return res.status(200).send(tweets);
   } catch (error) {
     return res.status(400).send({ error: error.message });
@@ -2303,7 +2319,7 @@ app.get("/post/search", async (req, res) => {
     const tweets = await Tweet.find({
       content: { $regex: q.trim(), $options: "i" },
       ...publishedTweetFilter,
-    }).sort({ timestamp: -1 }).limit(50).populate("author");
+    }).sort({ timestamp: -1 }).limit(50).populate("author", "displayName username avatar verified subscription");
     res.send(tweets);
   } catch (error) {
     res.status(400).send({ error: error.message });
@@ -2316,7 +2332,10 @@ app.get("/post/user/:userId/media", async (req, res) => {
     const tweets = await Tweet.find({
       author: req.params.userId,
       $and: [mediaAttachmentFilter, publishedTweetFilter],
-    }).sort({ timestamp: -1 }).populate("author");
+    })
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .populate("author", "displayName username avatar verified subscription");
     res.send(tweets);
   } catch (error) {
     res.status(400).send({ error: error.message });
@@ -2329,7 +2348,10 @@ app.get("/post/user/:userId", async (req, res) => {
     const tweets = await Tweet.find({
       author: req.params.userId,
       ...publishedTweetFilter,
-    }).sort({ timestamp: -1 }).populate("author");
+    })
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .populate("author", "displayName username avatar verified subscription");
     return res.status(200).send(tweets);
   } catch (error) {
     return res.status(400).send({ error: error.message });
@@ -3096,7 +3118,7 @@ app.post("/helpdesk/tickets", uploadImage.single("screenshot"), async (req, res)
       return res.status(400).send({ error: "Name, email, subject and description are required fields." });
     }
 
-    const screenshot = req.file ? `/uploads/${req.file.filename}` : null;
+    const screenshot = req.file ? req.file.path : null;
 
     const ticket = new SupportTicket({
       userId: userId || null,

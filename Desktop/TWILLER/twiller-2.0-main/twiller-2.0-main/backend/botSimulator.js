@@ -658,53 +658,73 @@ export const runBotAction = async () => {
   }
 };
 
+const SAMPLE_GIFS = [
+  { url: "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyO/giphy.gif" },
+  { url: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" },
+  { url: "https://media.giphy.com/media/3o6Zt4HU9uwXmXSAuI/giphy.gif" },
+  { url: "https://media.giphy.com/media/xT9IgG50Lg7russbD6/giphy.gif" },
+  { url: "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif" },
+  { url: "https://media.giphy.com/media/l0HlvtIPzPdt2usKs/giphy.gif" },
+  { url: "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif" },
+  { url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif" },
+  { url: "https://media.giphy.com/media/3oFzmrl8XnJlA4o08w/giphy.gif" },
+  { url: "https://media.giphy.com/media/xT9IgDECMFWl9F3CMg/giphy.gif" },
+  { url: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" },
+  { url: "https://media.giphy.com/media/3oEjHBa34dVLv0jnoc/giphy.gif" },
+];
+
 // Background generator for bot tweets (posts exactly 1 tweet per interval from interleaved list)
 export const runBotPost = async () => {
   try {
-    const dbBots = await User.find({ isBot: true }).sort({ username: 1 });
+    const dbBots = await User.find({ isBot: true });
     if (!dbBots || dbBots.length === 0) return;
 
-    const botIds = dbBots.map(b => b._id);
-    const existingBotTweetsCount = await Tweet.countDocuments({ author: { $in: botIds } });
+    // Pick a random bot
+    const bot = dbBots[Math.floor(Math.random() * dbBots.length)];
+    const botSpecificTweets = BOT_TWEETS_DATA[bot.username];
+    if (!botSpecificTweets || botSpecificTweets.length === 0) return;
 
-    if (existingBotTweetsCount >= 400) {
-      console.log("🤖 [Bot Simulator] All 400 unique bot tweets have been posted. Stopping bot tweeter.");
-      return;
+    // Count tweets posted by this bot
+    const botTweetsCount = await Tweet.countDocuments({ author: bot._id });
+
+    // Select the next sequential tweet (ensuring wrap-around)
+    const tweetData = botSpecificTweets[botTweetsCount % botSpecificTweets.length];
+
+    // Roll random premium features:
+    // 15% chance audio using SoundHelix mock MP3s
+    // 20% chance Unsplash/Giphy GIFs (if no audio)
+    let audioUrl = null;
+    let gifUrl = null;
+    let imageUrl = tweetData.image || null;
+
+    const roll = Math.random();
+    if (roll < 0.15) {
+      // Audio tweet
+      const songIndex = Math.floor(Math.random() * 16) + 1;
+      audioUrl = `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${songIndex}.mp3`;
+      imageUrl = null; // Audio tweet doesn't have regular image
+    } else if (roll < 0.15 + 0.20) {
+      // GIF tweet
+      const gifIndex = Math.floor(Math.random() * SAMPLE_GIFS.length);
+      gifUrl = SAMPLE_GIFS[gifIndex]?.url || "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyO/giphy.gif";
+      imageUrl = null; // GIF tweet has gifUrl instead of image
     }
 
-    // Generate the full interleaved array of 400 tweets
-    const allBotTweets = [];
-    const totalTweetsPerBot = 20;
-    for (let col = 0; col < totalTweetsPerBot; col++) {
-      for (let row = 0; row < dbBots.length; row++) {
-        const bot = dbBots[row];
-        const botSpecificTweets = BOT_TWEETS_DATA[bot.username];
-        if (botSpecificTweets && botSpecificTweets[col]) {
-          const tweetData = botSpecificTweets[col];
-          allBotTweets.push({
-            author: bot._id,
-            content: tweetData.content,
-            image: tweetData.image || null,
-          });
-        }
-      }
-    }
+    const newTweet = new Tweet({
+      author: bot._id,
+      content: tweetData.content,
+      image: imageUrl,
+      audio: audioUrl,
+      gifUrl: gifUrl,
+      timestamp: new Date(),
+      notificationsSent: true
+    });
+    await newTweet.save();
 
-    // Select the next tweet to insert
-    const nextTweetData = allBotTweets[existingBotTweetsCount];
-    if (nextTweetData) {
-      const newTweet = new Tweet({
-        author: nextTweetData.author,
-        content: nextTweetData.content,
-        image: nextTweetData.image,
-        timestamp: new Date(),
-        notificationsSent: true
-      });
-      await newTweet.save();
+    // Invoke processTweetNotifications on bot posts
+    await processTweetNotifications(newTweet);
 
-      const postingBot = dbBots.find(b => b._id.toString() === nextTweetData.author.toString());
-      console.log(`🤖 [Bot Simulator] @${postingBot?.username} posted new tweet: "${newTweet.content.slice(0, 50)}..."`);
-    }
+    console.log(`🤖 [Bot Simulator] @${bot.username} posted new tweet (Audio: ${!!audioUrl}, GIF: ${!!gifUrl}): "${newTweet.content.slice(0, 50)}..."`);
   } catch (err) {
     console.error("❌ [Bot Simulator] Error generating bot tweet:", err);
   }

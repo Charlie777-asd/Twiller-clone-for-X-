@@ -523,6 +523,14 @@ function AccountSection({ onBack }: { onBack: () => void }) {
             sendChangeOtp(ch);
           }}
           onCancel={() => setShowChannelPicker(false)}
+          onAddPhone={() => {
+            setShowChannelPicker(false);
+            startEdit("phone");
+          }}
+          onAddEmail={() => {
+            setShowChannelPicker(false);
+            startEdit("email");
+          }}
         />
       )}
     </div>
